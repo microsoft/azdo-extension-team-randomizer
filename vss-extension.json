@@ -1,0 +1,110 @@
+{
+  "manifestVersion": 1,
+  "id": "team-member-randomizer",
+  "version": "0.1.56",
+  "name": "Team Member Randomizer",
+  "description": "Team Member Randomizer for Daily Standups",
+  "publisher": "enginpolat",
+  "public": false,
+  "categories": [
+    "Azure Boards"
+  ],
+  "links": {
+    "learn": {
+      "uri": "https://github.com/polatengin/tokyo"
+    }
+  },
+  "icons": {
+    "default": "src/icon.png"
+  },
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "demands": [
+    "api-version/2.0"
+  ],
+  "content": {
+    "details": {
+      "path": "DETAILS.md"
+    }
+  },
+  "branding": {
+    "color": "rgb(190, 39, 3)",
+    "theme": "dark"
+  },
+  "files": [
+    {
+      "path": "src/icon.png",
+      "addressable": true
+    },
+    {
+      "path": "src/main.html",
+      "addressable": true
+    },
+    {
+      "path": "src/scripts/main.js",
+      "addressable": true
+    },
+    {
+      "path": "src/scripts/popup.js",
+      "addressable": true
+    },
+    {
+      "path": "src/scripts/settings.js",
+      "addressable": true
+    },
+    {
+      "path": "src/scripts/shim.js",
+      "addressable": true
+    },
+    {
+      "path": "src/scripts/utils.js",
+      "addressable": true
+    },
+    {
+      "path": "src/styles/main.css",
+      "addressable": true
+    },
+    {
+      "path": "src/popupDialog.html",
+      "addressable": true
+    },
+    {
+      "path": "src/settings.html",
+      "addressable": true
+    },
+    {
+      "path": "node_modules/vss-web-extension-sdk/lib",
+      "addressable": true
+    }
+  ],
+  "contributions": [
+    {
+      "id": "popupDialog",
+      "type": "ms.vss-web.control",
+      "description": "The content displayed in the dialog shown in the contributed menu actions from this extension.",
+      "targets": [],
+      "properties": {
+        "uri": "src/popupDialog.html"
+      }
+    },
+    {
+      "id": "team-member-randomizer-button",
+      "type": "ms.vss-web.action",
+      "description": "Team member randomizer",
+      "targets": [
+        "ms.vss-work-web.sprint-board-pivot-filter-menu"
+      ],
+      "properties": {
+        "text": "",
+        "title": "Team Member Randomizer",
+        "icon": "src/icon.png",
+        "group": "actions",
+        "uri": "src/main.html",
+        "registeredObjectId": "teamMemberRandomizerButton"
+      }
+    }
+  ]
+}
