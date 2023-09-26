@@ -462,5 +462,9 @@
   {
     "id": 118,
     "text": "Are you more interested in cultural or natural attractions?"
+  },
+  {
+    "id": 119,
+    "text": "How good are you at remembering names?"
   }
 ]
