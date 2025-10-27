@@ -8,12 +8,13 @@
   },
   "author": "Engin Polat",
   "scripts": {
-    "pack": "npx tfx-cli extension create --rev-version",
-    "pack-debug": "npx tfx-cli extension create --rev-version --overrides-file dev.json",
+    "clean": "rm -rf *.vsix",
+    "pack": "npm run clean && npx tfx-cli extension create --rev-version",
+    "pack-debug": "npm run clean && npx tfx-cli extension create --rev-version --overrides-file dev.json",
     "web": "cd src && npx live-server --port=9393 --entry-file=main.html --host=localhost",
     "debug": "npx live-server --port=33000 --entry-file=src/main.html --https=certs/https.js --host=localhost"
   },
   "dependencies": {
-    "vss-web-extension-sdk": "5.141.0"
+    "azure-devops-extension-sdk": "4.2.0"
   }
 }
