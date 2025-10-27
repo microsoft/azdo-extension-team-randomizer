@@ -1,10 +1,10 @@
 {
   "manifestVersion": 1,
   "id": "team-member-randomizer",
-  "version": "0.1.56",
+  "version": "0.1.57",
   "name": "Team Member Randomizer",
   "description": "Team Member Randomizer for Daily Standups",
-  "publisher": "enginpolat",
+  "publisher": "ms-devlabs",
   "public": false,
   "categories": [
     "Azure Boards"
@@ -76,7 +76,7 @@
       "addressable": true
     },
     {
-      "path": "node_modules/vss-web-extension-sdk/lib",
+      "path": "node_modules/azure-devops-extension-sdk",
       "addressable": true
     }
   ],
