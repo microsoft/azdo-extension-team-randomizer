@@ -1,5 +1,5 @@
 function getTodaysKey() {
-  const key = (new Intl.DateTimeFormat().format(new Date())).replace(/\//g, "");
+  const key = new Intl.DateTimeFormat().format(new Date()).replace(/\//g, '');
   return key;
 }
 
@@ -20,32 +20,34 @@ function storeToday(item) {
 }
 
 function storeShowQuestionStatus(status) {
-  localStorage.setItem("showQuestion", status);
+  localStorage.setItem('showQuestion', status);
 }
 
 function getShowQuestionStatus() {
-  return localStorage.getItem("showQuestion") == "true";
+  return localStorage.getItem('showQuestion') == 'true';
 }
 
 function storeShowHotDStatus(status) {
-  localStorage.setItem("showHotD", status);
+  localStorage.setItem('showHotD', status);
 }
 
 function getShowHotDStatus() {
-  return localStorage.getItem("showHotD") == "true";
+  return localStorage.getItem('showHotD') == 'true';
 }
 
 function storeSpeed(speed) {
-  localStorage.setItem("speed", speed);
+  localStorage.setItem('speed', speed);
 }
 
 function getSpeed() {
-  return localStorage.getItem("speed");
+  return localStorage.getItem('speed');
 }
 function getQuestions(callback) {
-  fetch("https://raw.githubusercontent.com/polatengin/tokyo/main/qotd.json").then(response => response.json()).then(questions => {
-    callback(questions);
-  });
+  fetch('https://raw.githubusercontent.com/microsoft/azdo-extension-team-randomizer/main/qotd.json')
+    .then((response) => response.json())
+    .then((questions) => {
+      callback(questions);
+    });
 }
 
 function getUnaskedQuestions(callback) {
@@ -60,7 +62,7 @@ function getUnaskedQuestions(callback) {
     if (finishedQuestions.length === questions.length) {
       finishedQuestions.clear();
     }
-    callback(questions.filter(e => !finishedQuestions.includes(e)));
+    callback(questions.filter((e) => !finishedQuestions.includes(e)));
   });
 }
 
@@ -72,30 +74,34 @@ function getRandomQuestion(callback) {
 }
 
 function getRandomHotD(callback) {
-  fetch("https://raw.githubusercontent.com/polatengin/tokyo/main/hotd.json").then(response => response.json()).then(items => {
-    const formattedDate = (new Date()).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-    });
-    const holidays = [];
-    for (const entry of items) {
-      if (entry.date === formattedDate) {
-        holidays.push(entry.holidays);
+  fetch('https://raw.githubusercontent.com/microsoft/azdo-extension-team-randomizer/main/hotd.json')
+    .then((response) => response.json())
+    .then((items) => {
+      const formattedDate = new Date().toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric'
+      });
+      const holidays = [];
+      for (const entry of items) {
+        if (entry.date === formattedDate) {
+          holidays.push(entry.holidays);
+        }
       }
-    }
-    callback( holidays[Math.floor(Math.random() * holidays.length)] );
-  });
+      callback(holidays[Math.floor(Math.random() * holidays.length)]);
+    });
 }
 function initStorage() {
   getRandomQuestion((question) => {
     getRandomHotD((hotd) => {
       const day = getDayStorage();
       if (!day) {
-        storeToday(JSON.stringify({
-          question: question,
-          hotd: hotd,
-          members: [],
-        }));
+        storeToday(
+          JSON.stringify({
+            question: question,
+            hotd: hotd,
+            members: []
+          })
+        );
       }
     });
   });

@@ -1,13 +1,14 @@
 {
-  "name": "tokyo",
+  "name": "azdo-extension-team-randomizer",
   "version": "0.1.0",
   "description": "Random Team Member Selector for Daily Standups",
   "repository": {
     "type": "git",
-    "url": "https://github.com/polatengin/tokyo"
+    "url": "https://github.com/microsoft/azdo-extension-team-randomizer"
   },
   "author": "Engin Polat",
   "scripts": {
+    "format": "npx prettier --config ./.prettierrc.yml --write './**/*.{js,cjs,mjs,ts,tsx,jsx,htm,html,css}'",
     "clean": "rm -rf *.vsix",
     "pack": "npm run clean && npx tfx-cli extension create --rev-version",
     "pack-debug": "npm run clean && npx tfx-cli extension create --rev-version --overrides-file dev.json",
