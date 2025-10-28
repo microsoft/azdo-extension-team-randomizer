@@ -2,7 +2,7 @@
 
 In order to debug via Azure DevOps, you need to run the dev server using https. A self signed cert should be generated and trusted on your local system.
 
-A self signed .crt and .key can be generated using the provided generate-cert.sh script. 
+A self signed .crt and .key can be generated using the provided generate-cert.sh script.
 
 After generating the cert, you must add the .crt to your trusted certificate store.
 

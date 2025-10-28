@@ -1,5 +1,5 @@
 {
-  "name": "Tokyo Dev Environment",
+  "name": "Team Member Randomizer",
   "image": "mcr.microsoft.com/devcontainers/base:bullseye",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:1": {},

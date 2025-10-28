@@ -1,74 +1,68 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <title>Team Member Randomizer</title>
-  <script src="scripts/shim.js"></script>
-  <script src="scripts/utils.js"></script>
-  <script src="scripts/settings.js"></script>
-  <script src="../node_modules/azure-devops-extension-sdk/SDK.min.js"></script>
-  <style>
-    body {
-      height: calc(100vh - 10px);
-    }
-    h1 {
-      margin: 0;
-    }
-    .bold {
-      font-weight: bold;
-    }
-    .completed {
-      text-decoration: line-through;
-      color: #999;
-    }
-    #content {
-      padding: 10px;
-      display: grid;
-      gap: 15px;
-      height: 100%;
-    }
-    #teamPanel {
-      overflow-y: scroll;
-    }
-    #team {
-      margin-top: 15px;
-    }
-  </style>
-</head>
-<body style="background-color:inherit">
-  <div id="content">
-    <a href="popupDialog.html"> <span>&#x2B05;</span> back</a>
+  <head>
+    <title>Team Member Randomizer</title>
+    <script src="scripts/shim.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/settings.js"></script>
+    <script src="../node_modules/azure-devops-extension-sdk/SDK.min.js"></script>
+    <style>
+      body {
+        height: calc(100vh - 10px);
+      }
+      h1 {
+        margin: 0;
+      }
+      .bold {
+        font-weight: bold;
+      }
+      .completed {
+        text-decoration: line-through;
+        color: #999;
+      }
+      #content {
+        padding: 10px;
+        display: grid;
+        gap: 15px;
+        height: 100%;
+      }
+      #teamPanel {
+        overflow-y: scroll;
+      }
+      #team {
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body style="background-color: inherit">
+    <div id="content">
+      <a href="popupDialog.html"> <span>&#x2B05;</span> back</a>
 
-    <h1>Settings</h1>
-    <section>
-      Show Question of the day: <input type="checkbox" id="showQuestion" checked />
-    </section>
-    <section>
-      Show Holiday of the day: <input type="checkbox" id="showHotD" checked />
-    </section>
-    <section>
-      Delay: <input type="range" id="speed" min="0" max="300" step="50" value="200" />
-    </section>
+      <h1>Settings</h1>
+      <section>Show Question of the day: <input type="checkbox" id="showQuestion" checked /></section>
+      <section>Show Holiday of the day: <input type="checkbox" id="showHotD" checked /></section>
+      <section>Delay: <input type="range" id="speed" min="0" max="300" step="50" value="200" /></section>
 
-    <section id="teamPanel">
-      Available Team Members:
-      <table id="team"></table>
-    </section>
-  </div>
-  <script type="text/javascript">
-    "use strict";
-    if (isDevEnvironment()) {
-      setupDevShim();
-      IS_SETTINGS = true;
-    }
+      <section id="teamPanel">
+        Available Team Members:
+        <table id="team"></table>
+      </section>
+    </div>
+    <script type="text/javascript">
+      'use strict';
+      if (isDevEnvironment()) {
+        setupDevShim();
+        IS_SETTINGS = true;
+      }
 
-    VSS.init({ applyTheme: true, usePlatformScripts: true, usePlatformStyles: true });
+      VSS.init({ applyTheme: true, usePlatformScripts: true, usePlatformStyles: true });
 
-    VSS.require(["VSS/Service", "TFS/Core/RestClient"], (VSS_Service, TFS_RestClient) => {
-      const _client = VSS_Service.getCollectionClient(TFS_RestClient.CoreHttpClient4_1);
-      const webContext = VSS.getWebContext();
-      loadSettingsData(_client, webContext)
-      VSS.notifyLoadSucceeded();
-    });
-  </script>
-</body>
+      VSS.require(['VSS/Service', 'TFS/Core/RestClient'], (VSS_Service, TFS_RestClient) => {
+        const _client = VSS_Service.getCollectionClient(TFS_RestClient.CoreHttpClient4_1);
+        const webContext = VSS.getWebContext();
+        loadSettingsData(_client, webContext);
+        VSS.notifyLoadSucceeded();
+      });
+    </script>
+  </body>
 </html>

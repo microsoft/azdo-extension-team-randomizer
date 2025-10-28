@@ -1,79 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <title>Team Member Randomizer</title>
-  <script src="scripts/shim.js"></script>
-  <script src="scripts/utils.js"></script>
-  <script src="scripts/popup.js"></script>
-  <script src="../node_modules/azure-devops-extension-sdk/SDK.min.js"></script>
-  <style>
-    html, body { margin:0; padding:0; overflow:hidden; }
+  <head>
+    <title>Team Member Randomizer</title>
+    <script src="scripts/shim.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/popup.js"></script>
+    <script src="../node_modules/azure-devops-extension-sdk/SDK.min.js"></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
 
-    body::-webkit-scrollbar { width:12px; }
+      body::-webkit-scrollbar {
+        width: 12px;
+      }
 
-    #settings {
-      cursor: pointer;
-      text-align: right;
-      display: block;
-    }
+      #settings {
+        cursor: pointer;
+        text-align: right;
+        display: block;
+      }
 
-    #team {
-      display: grid;
-      overflow-y: scroll;
-      height: calc(100vh - 200px);
-    }
+      #team {
+        display: grid;
+        overflow-y: scroll;
+        height: calc(100vh - 200px);
+      }
 
-    .bold { font-weight:bold; }
+      .bold {
+        font-weight: bold;
+      }
 
-    .completed {
-      text-decoration: line-through;
-      color: #999;
-    }
+      .completed {
+        text-decoration: line-through;
+        color: #999;
+      }
 
-    #message { margin:10px; }
+      #message {
+        margin: 10px;
+      }
 
-    #canvas { display:none; }
+      #canvas {
+        display: none;
+      }
 
-    .settings {
-      width:100%;
-      display: block;
-      text-align: right;
-    }
-  </style>
-</head>
-<body>
-  <a href="settings.html" class="settings"> <span>&#9881;</span> settings</a>
-  <canvas id="canvas"></canvas>
-  <p id="message" style="display:none;"></p>
-  <section id="questionsPanel">
-    <p id="question"></p>
-    <button id="buttonRandomQuestion">Random Question</button>
-  </section>
-  <section id="hotdPanel">
-    <p id="hotd"></p>
-    <button id="buttonRandomHotD">Random Holiday of the Day</button>
-  </section>
-  <div style="margin-bottom:10px;margin-top:10px">
-    <button id="buttonNext">Next</button>
-    <button id="buttonStartOver">Start Over</button>
-  </div>
-  <table id="team"></table>
-  <script type="text/javascript">
-    "use strict";
+      .settings {
+        width: 100%;
+        display: block;
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="settings.html" class="settings"> <span>&#9881;</span> settings</a>
+    <canvas id="canvas"></canvas>
+    <p id="message" style="display: none"></p>
+    <section id="questionsPanel">
+      <p id="question"></p>
+      <button id="buttonRandomQuestion">Random Question</button>
+    </section>
+    <section id="hotdPanel">
+      <p id="hotd"></p>
+      <button id="buttonRandomHotD">Random Holiday of the Day</button>
+    </section>
+    <div style="margin-bottom: 10px; margin-top: 10px">
+      <button id="buttonNext">Next</button>
+      <button id="buttonStartOver">Start Over</button>
+    </div>
+    <table id="team"></table>
+    <script type="text/javascript">
+      'use strict';
 
-    if(isDevEnvironment())
-      setupDevShim();
+      if (isDevEnvironment()) setupDevShim();
 
-    VSS.init({ applyTheme: true, usePlatformScripts: true, usePlatformStyles: true });
+      VSS.init({ applyTheme: true, usePlatformScripts: true, usePlatformStyles: true });
 
-    VSS.require(["VSS/Service", "TFS/Core/RestClient"], (VSS_Service, TFS_RestClient) => {
-      const _client = VSS_Service.getCollectionClient(TFS_RestClient.CoreHttpClient4_1);
-      const _webContext = VSS.getWebContext();
+      VSS.require(['VSS/Service', 'TFS/Core/RestClient'], (VSS_Service, TFS_RestClient) => {
+        const _client = VSS_Service.getCollectionClient(TFS_RestClient.CoreHttpClient4_1);
+        const _webContext = VSS.getWebContext();
 
-      loadData(_client, _webContext);
+        loadData(_client, _webContext);
 
-      VSS.notifyLoadSucceeded();
-    });
-  </script>
-</body>
+        VSS.notifyLoadSucceeded();
+      });
+    </script>
+  </body>
 </html>
