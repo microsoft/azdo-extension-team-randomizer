@@ -19,29 +19,6 @@ function storeToday(item) {
   localStorage.setItem(key, item);
 }
 
-function storeShowQuestionStatus(status) {
-  localStorage.setItem('showQuestion', status);
-}
-
-function getShowQuestionStatus() {
-  return localStorage.getItem('showQuestion') == 'true';
-}
-
-function storeShowHotDStatus(status) {
-  localStorage.setItem('showHotD', status);
-}
-
-function getShowHotDStatus() {
-  return localStorage.getItem('showHotD') == 'true';
-}
-
-function storeSpeed(speed) {
-  localStorage.setItem('speed', speed);
-}
-
-function getSpeed() {
-  return localStorage.getItem('speed');
-}
 function getQuestions(callback) {
   fetch('https://raw.githubusercontent.com/microsoft/azdo-extension-team-randomizer/main/qotd.json')
     .then((response) => response.json())
@@ -84,10 +61,17 @@ function getRandomHotD(callback) {
       const holidays = [];
       for (const entry of items) {
         if (entry.date === formattedDate) {
-          holidays.push(entry.holidays);
+          holidays.push(...entry.holidays);
         }
       }
-      callback(holidays[Math.floor(Math.random() * holidays.length)]);
+      const selectedHoliday = holidays[Math.floor(Math.random() * holidays.length)];
+      if (typeof selectedHoliday === 'object') {
+        const title = selectedHoliday.title || selectedHoliday.name || '';
+        const description = selectedHoliday.description || '';
+        callback(description ? `${title}: ${description}` : title);
+      } else {
+        callback(selectedHoliday);
+      }
     });
 }
 function initStorage() {
@@ -105,10 +89,4 @@ function initStorage() {
       }
     });
   });
-
-  let speed = getSpeed();
-  if (!speed) {
-    speed = 200;
-    storeSpeed(speed);
-  }
 }

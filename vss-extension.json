@@ -1,10 +1,10 @@
 {
   "manifestVersion": 1,
   "id": "team-member-randomizer",
-  "version": "0.1.57",
+  "version": "0.1.91",
   "name": "Team Member Randomizer",
   "description": "Team Member Randomizer for Daily Standups",
-  "publisher": "ms-devlabs",
+  "publisher": "enginpolat",
   "public": false,
   "categories": [
     "Azure Boards"
@@ -21,6 +21,11 @@
     {
       "id": "Microsoft.VisualStudio.Services"
     }
+  ],
+  "scopes": [
+    "vso.project",
+    "vso.work",
+    "vso.extension.data"
   ],
   "demands": [
     "api-version/2.0"
@@ -52,11 +57,11 @@
       "addressable": true
     },
     {
-      "path": "src/scripts/settings.js",
+      "path": "src/scripts/projectSettings.js",
       "addressable": true
     },
     {
-      "path": "src/scripts/shim.js",
+      "path": "src/scripts/dataService.js",
       "addressable": true
     },
     {
@@ -72,11 +77,19 @@
       "addressable": true
     },
     {
-      "path": "src/settings.html",
+      "path": "src/projectSettings.html",
       "addressable": true
     },
     {
       "path": "node_modules/azure-devops-extension-sdk",
+      "addressable": true
+    },
+    {
+      "path": "node_modules/azure-devops-extension-api",
+      "addressable": true
+    },
+    {
+      "path": "node_modules/vss-web-extension-sdk",
       "addressable": true
     }
   ],
@@ -104,6 +117,19 @@
         "group": "actions",
         "uri": "src/main.html",
         "registeredObjectId": "teamMemberRandomizerButton"
+      }
+    },
+    {
+      "id": "team-member-randomizer-settings",
+      "type": "ms.vss-web.hub",
+      "description": "Team Member Randomizer Settings",
+      "targets": [
+        "ms.vss-web.project-admin-hub-group"
+      ],
+      "properties": {
+        "name": "Team Member Randomizer",
+        "order": 100,
+        "uri": "src/projectSettings.html"
       }
     }
   ]

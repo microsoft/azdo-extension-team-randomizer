@@ -7,22 +7,57 @@
   </head>
   <body>
     <div id="default">Users will never see this page.</div>
-    <script src="scripts/shim.js"></script>
     <script src="scripts/utils.js"></script>
-    <script src="scripts/main.js"></script>
-    <script src="../node_modules/azure-devops-extension-sdk/SDK.min.js"></script>
-    <script>
+    <script type="module">
       'use strict';
-      if (isDevEnvironment()) setupDevShim();
+      import * as SDK from '../node_modules/azure-devops-extension-sdk/esm/SDK.js';
 
-      VSS.init({ applyTheme: true, usePlatformScripts: true, usePlatformStyles: true });
+      SDK.init({ applyTheme: true });
 
-      VSS.register('teamMemberRandomizerButton', () => {
+      SDK.register('teamMemberRandomizerButton', () => {
         return {
-          execute: (properties) => {
-            VSS.getService('ms.vss-web.dialog-service').then((dialogService) => {
-              const extensionInfo = VSS.getExtensionContext();
-              buttonHandler(dialogService, extensionInfo, properties);
+          execute: async (properties) => {
+            const dialogService = await SDK.getService('ms.vss-web.dialog-service');
+            const extensionInfo = SDK.getExtensionContext();
+
+            const options = {
+              title: 'Team Members',
+              width: 400,
+              height: 650,
+              buttons: {
+                'Next': {
+                  text: 'Next',
+                  click: function() {
+                    const dialog = this;
+                    dialog.getContributionInstance('popupDialog').then((instance) => {
+                      if (instance && instance.onNext) {
+                        instance.onNext();
+                      }
+                    });
+                  }
+                },
+                'Start Over': {
+                  text: 'Start Over',
+                  click: function() {
+                    const dialog = this;
+                    dialog.getContributionInstance('popupDialog').then((instance) => {
+                      if (instance && instance.onStartOver) {
+                        instance.onStartOver();
+                      }
+                    });
+                  }
+                },
+                'Close': {
+                  text: 'Close',
+                  click: function() {
+                    this.close();
+                  }
+                }
+              }
+            };
+            initStorage();
+            dialogService.openDialog(extensionInfo.publisherId + '.' + extensionInfo.extensionId + '.popupDialog', options, {
+              properties
             });
           }
         };
