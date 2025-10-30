@@ -1,0 +1,31 @@
+// Import azure-devops-ui theme variables
+@use '../../node_modules/azure-devops-ui/Core/_platformCommon.scss' as platform;
+
+.panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: platform.$spacing-16;
+}
+
+.panel-section-top {
+  margin-bottom: platform.$spacing-16;
+  padding-bottom: platform.$spacing-16;
+  border-bottom: 1px solid var(--border-subtle-color);
+}
+
+.panel-section-middle {
+  flex: 1;
+  overflow-y: auto;
+
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+}
+
+.panel-section-bottom {
+  margin-top: platform.$spacing-16;
+  padding-top: platform.$spacing-16;
+  border-top: 1px solid var(--border-subtle-color);
+}

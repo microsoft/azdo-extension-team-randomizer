@@ -1,0 +1,8 @@
+{
+  "baseUri": "https://localhost:33000",
+  "id": "team-member-randomizer-dev",
+  "name": "Team Member Randomizer (DEV)",
+  "publisher": "daporo-dev",
+  "public": false,
+  "version": "0.1.81"
+}

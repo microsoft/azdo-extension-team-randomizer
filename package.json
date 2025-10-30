@@ -2,24 +2,56 @@
   "name": "azdo-extension-team-randomizer",
   "version": "0.1.0",
   "description": "Random Team Member Selector for Daily Standups",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/microsoft/azdo-extension-team-randomizer"
   },
-  "author": "Engin Polat",
+  "author": "Microsoft Corporation",
+  "contributors": [
+    "Engin Polat",
+    "Dariusz Porowski"
+  ],
   "scripts": {
-    "format": "npx prettier --config ./.prettierrc.yml --write './**/*.{js,cjs,mjs,ts,tsx,jsx,htm,html,css}'",
-    "clean": "rm -rf *.vsix",
-    "pack": "npm run clean && npx tfx-cli extension create --rev-version",
-    "publish": "npm run pack && npx tfx-cli extension publish --vsix *.vsix --token ${AZURE_DEVOPS_TOKEN}",
-    "web": "cd src && npx live-server --port=9393 --entry-file=main.html --host=localhost",
-    "debug": "npx live-server --port=33000 --entry-file=src/main.html --https=certs/https.js --host=localhost"
+    "format": "npx prettier --config ./.prettierrc.yml --write './**/*.{js,cjs,mjs,ts,tsx,jsx,htm,html,scss,css}'",
+    "clean": "rimraf dist && rimraf -g *.vsix",
+    "clean:modules": "rimraf node_modules && npm i",
+    "compile:prod": "npm run clean && webpack --mode production",
+    "compile:dev": "npm run clean && webpack --mode development",
+    "build:prod": "npm run compile:prod && tfx extension create --manifest-globs azure-devops-extension.json src/**/*.json --overrides-file azure-devops-extension.prod.json --rev-version --output-path out",
+    "build:dev": "dotenv -e .env -- npm run compile:dev && tfx extension create --manifest-globs azure-devops-extension.json src/**/*.json --overrides-file azure-devops-extension.dev.json --override {\"publisher\":\"${AZDO_PUBLISHER}\"} --rev-version --output-path out",
+    "publish:prod": "npm run compile:prod && tfx extension publish --manifest-globs azure-devops-extension.json src/**/*.json --overrides-file azure-devops-extension.prod.json --rev-version --output-path out --token ${AZURE_DEVOPS_TOKEN}",
+    "publish:dev": "dotenv -e .env -- npm run compile:dev && tfx extension publish --manifest-globs azure-devops-extension.json src/**/*.json --overrides-file azure-devops-extension.dev.json --override {\"publisher\":\"${AZDO_PUBLISHER}\"} --rev-version --output-path out --token ${AZURE_DEVOPS_TOKEN}",
+    "start:dev": "webpack-dev-server --mode development --progress --open",
+    "start:prod": "webpack-dev-server --mode production --progress --open"
   },
   "dependencies": {
-    "azure-devops-extension-api": "4.262.0",
-    "azure-devops-extension-sdk": "4.2.0"
+    "azure-devops-extension-api": "^4.262.0",
+    "azure-devops-extension-sdk": "^4.2.0",
+    "azure-devops-ui": "^2.264.0",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "vss-web-extension-sdk": "5.141.0"
   },
   "devDependencies": {
-    "vss-web-extension-sdk": "5.141.0"
+    "@types/react": "^16.14.67",
+    "@types/react-dom": "^16.9.25",
+    "base64-inline-loader": "^2.0.1",
+    "copy-webpack-plugin": "^13.0.1",
+    "css-loader": "^7.1.2",
+    "dotenv": "^17.2.3",
+    "dotenv-cli": "^11.0.0",
+    "es6-promise": "^4.2.8",
+    "file-loader": "^6.2.0",
+    "rimraf": "^6.0.1",
+    "sass": "^1.93.2",
+    "sass-loader": "^16.0.6",
+    "style-loader": "^4.0.0",
+    "tfx-cli": "^0.22.1",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
   }
 }

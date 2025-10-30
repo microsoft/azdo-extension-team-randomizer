@@ -1,0 +1,45 @@
+{
+  "manifestVersion": 1,
+  "id": "team-member-randomizer",
+  "version": "0.0.0-development",
+  "name": "Team Member Randomizer",
+  "description": "Team Member Randomizer for daily standups",
+  "publisher": "",
+  "public": false,
+  "categories": [
+    "Azure Boards"
+  ],
+  "links": {
+    "learn": {
+      "uri": "https://github.com/microsoft/azdo-extension-team-randomizer"
+    }
+  },
+  "icons": {
+    "default": "src/icon.png"
+  },
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "scopes": [
+    "vso.project",
+    "vso.work",
+    "vso.extension.data"
+  ],
+  "content": {
+    "details": {
+      "path": "OVERVIEW.md"
+    }
+  },
+  "branding": {
+    "color": "rgb(190, 39, 3)",
+    "theme": "dark"
+  },
+  "files": [
+    {
+      "path": "dist",
+      "addressable": true
+    }
+  ]
+}
