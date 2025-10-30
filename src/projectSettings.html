@@ -1,0 +1,204 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Team Member Randomizer Settings</title>
+    <script src="../node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script type="module" src="scripts/dataService.js"></script>
+    <script src="scripts/projectSettings.js"></script>
+    <style>
+      body {
+        margin: 20px !important;
+      }
+
+      h1 {
+        margin: 0 0 20px 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      select {
+        width: 100%;
+        max-width: 400px;
+        padding: 8px 12px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        color: var(--text-primary);
+      }
+
+      #loading {
+        margin: 20px 0;
+      }
+
+      #membersContainer {
+        margin-top: 20px;
+      }
+
+      #membersList {
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      .member-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .member-item:last-child {
+        border-bottom: none;
+      }
+
+      .member-checkbox {
+        margin-right: 12px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .member-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 12px;
+      }
+
+      .member-name {
+        flex: 1;
+        font-size: 14px;
+      }
+
+      .actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+      }
+
+      button {
+        padding: 8px 16px;
+        font-size: 14px;
+        border: 1px solid #0078d4;
+        border-radius: 4px;
+        cursor: pointer;
+        background-color: #0078d4;
+        color: white;
+        font-weight: 500;
+      }
+
+      button:hover {
+        background-color: #106ebe;
+      }
+
+      button:disabled {
+        background-color: #ccc;
+        border-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      button.secondary {
+        background-color: white;
+        color: #0078d4;
+      }
+
+      button.secondary:hover {
+        background-color: #f5f5f5;
+      }
+
+      .success-message {
+        margin-top: 10px;
+        padding: 12px;
+        background-color: #dff6dd;
+        border: 1px solid #10a626;
+        border-radius: 4px;
+        color: #0e6b1f;
+        display: none;
+      }
+
+      .error-message {
+        margin-top: 10px;
+        padding: 12px;
+        background-color: #fde7e9;
+        border: 1px solid #c50f1f;
+        border-radius: 4px;
+        color: #c50f1f;
+        display: none;
+      }
+
+      #memberSearch {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        color: var(--text-primary);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Team Member Randomizer Settings</h1>
+
+    <div class="form-group">
+      <label for="teamSelect">Select Team:</label>
+      <select id="teamSelect">
+        <option value="">Loading teams...</option>
+      </select>
+    </div>
+
+    <div id="loading">Loading...</div>
+
+    <div id="membersContainer" style="display: none">
+      <div class="form-group">
+        <label for="memberSearch">Add Member (enter name):</label>
+        <div style="display: flex; gap: 10px; max-width: 600px;">
+          <input type="text" id="memberSearch" placeholder="Enter member name..." style="flex: 1; padding: 8px 12px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px;" />
+          <button id="addMemberButton" class="secondary">Add</button>
+        </div>
+      </div>
+      <label>Available Members:</label>
+      <div id="membersList"></div>
+      <div class="actions">
+        <button id="saveButton">Save</button>
+        <button id="selectAllButton" class="secondary">Select All</button>
+        <button id="deselectAllButton" class="secondary">Deselect All</button>
+      </div>
+      <div id="successMessage" class="success-message">Settings saved successfully!</div>
+      <div id="errorMessage" class="error-message">Failed to save settings. Please try again.</div>
+    </div>
+
+    <script type="module">
+      'use strict';
+      import * as SDK from '../node_modules/azure-devops-extension-sdk/esm/SDK.js';
+
+      SDK.init({ applyTheme: true });
+
+      SDK.ready().then(async () => {
+        VSS.require(['VSS/Service', 'TFS/Core/RestClient', 'VSS/Identities/RestClient'], (VSS_Service, TFS_Core_RestClient, Identities_RestClient) => {
+          const coreClient = VSS_Service.getCollectionClient(TFS_Core_RestClient.CoreHttpClient);
+          const identityClient = VSS_Service.getCollectionClient(Identities_RestClient.IdentitiesHttpClient);
+          const _webContext = SDK.getWebContext();
+
+          loadSettingsPage(coreClient, identityClient, _webContext, SDK).catch(error => {
+            console.error('Failed to load settings:', error);
+            document.getElementById('loading').textContent = 'Failed to load settings. Please refresh the page.';
+          });
+
+          SDK.notifyLoadSucceeded();
+        });
+      });
+    </script>
+  </body>
+</html>

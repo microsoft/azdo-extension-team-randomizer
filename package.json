@@ -11,11 +11,15 @@
     "format": "npx prettier --config ./.prettierrc.yml --write './**/*.{js,cjs,mjs,ts,tsx,jsx,htm,html,css}'",
     "clean": "rm -rf *.vsix",
     "pack": "npm run clean && npx tfx-cli extension create --rev-version",
-    "pack-debug": "npm run clean && npx tfx-cli extension create --rev-version --overrides-file dev.json",
+    "publish": "npm run pack && npx tfx-cli extension publish --vsix *.vsix --token ${AZURE_DEVOPS_TOKEN}",
     "web": "cd src && npx live-server --port=9393 --entry-file=main.html --host=localhost",
     "debug": "npx live-server --port=33000 --entry-file=src/main.html --https=certs/https.js --host=localhost"
   },
   "dependencies": {
+    "azure-devops-extension-api": "4.262.0",
     "azure-devops-extension-sdk": "4.2.0"
+  },
+  "devDependencies": {
+    "vss-web-extension-sdk": "5.141.0"
   }
 }
