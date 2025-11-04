@@ -1,0 +1,99 @@
+@use '../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../table.scss';
+
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: transparent;
+
+  .settings-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: platformCommon.$spacing-16;
+    padding: platformCommon.$spacing-16;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .settings-card {
+    background-color: platformCommon.$calloutBackgroundColor;
+    align-self: stretch;
+    width: 100%;
+  }
+
+  .settings-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: platformCommon.$spacing-16;
+  }
+
+  .success-status {
+    color: platformCommon.$textColor;
+  }
+
+  .member-card {
+    padding: 0;
+  }
+
+  .members-section {
+    display: flex;
+    flex-direction: column;
+    gap: platformCommon.$spacing-12;
+  }
+
+  .members-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+
+  .members-selection-summary {
+    display: flex;
+    align-items: baseline;
+    gap: platformCommon.$spacing-4;
+    color: platformCommon.$secondary-text;
+    font-size: platformCommon.$fontSizeM;
+  }
+
+  .members-selection-summary strong {
+    color: platformCommon.$textColor;
+    font-size: platformCommon.$fontSizeL;
+  }
+
+  .select-team-dropdown {
+    display: flex;
+    gap: platformCommon.$spacing-8;
+  }
+
+  .add-member-row {
+    display: flex;
+    gap: platformCommon.$spacing-8;
+  }
+
+  .identity-picker-field {
+    flex: 1;
+  }
+
+  .remove-member-button {
+    margin-inline-start: auto;
+  }
+
+  .custom-identity-suggestion {
+    display: flex;
+    flex-direction: column;
+    gap: platformCommon.$spacing-4;
+  }
+
+  .custom-identity-suggestion-title {
+    font-weight: 600;
+  }
+
+  .custom-identity-suggestion-value {
+    font-size: platformCommon.$fontSizeM;
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "contributions": [
+    {
+      "id": "panel",
+      "type": "ms.vss-web.external-content",
+      "targets": [],
+      "properties": {
+        "registeredObjectId": "panel",
+        "uri": "dist/panel/panel.html"
+      }
+    }
+  ]
+}
