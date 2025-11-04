@@ -1,0 +1,18 @@
+{
+  "contributions": [
+    {
+      "id": "button",
+      "type": "ms.vss-web.action",
+      "targets": [
+        "ms.vss-work-web.sprint-board-pivot-filter-menu"
+      ],
+      "properties": {
+        "title": "Team Member Randomizer",
+        "group": "actions",
+        "iconName": "Teamwork",
+        "uri": "dist/button/button.html",
+        "registeredObjectId": "button"
+      }
+    }
+  ]
+}

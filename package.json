@@ -1,25 +1,51 @@
 {
   "name": "azdo-extension-team-randomizer",
-  "version": "0.1.0",
-  "description": "Random Team Member Selector for Daily Standups",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/microsoft/azdo-extension-team-randomizer"
-  },
-  "author": "Engin Polat",
-  "scripts": {
-    "format": "npx prettier --config ./.prettierrc.yml --write './**/*.{js,cjs,mjs,ts,tsx,jsx,htm,html,css}'",
-    "clean": "rm -rf *.vsix",
-    "pack": "npm run clean && npx tfx-cli extension create --rev-version",
-    "publish": "npm run pack && npx tfx-cli extension publish --vsix *.vsix --token ${AZURE_DEVOPS_TOKEN}",
-    "web": "cd src && npx live-server --port=9393 --entry-file=main.html --host=localhost",
-    "debug": "npx live-server --port=33000 --entry-file=src/main.html --https=certs/https.js --host=localhost"
-  },
+  "description": "Random Team Member selector for daily standups",
+  "version": "0.0.0-development",
+  "author": "Microsoft Corporation",
+  "contributors": [
+    "Dariusz Porowski",
+    "Engin Polat"
+  ],
   "dependencies": {
-    "azure-devops-extension-api": "4.262.0",
-    "azure-devops-extension-sdk": "4.2.0"
+    "azure-devops-extension-api": "^4.263.0",
+    "azure-devops-extension-sdk": "^4.2.0",
+    "azure-devops-ui": "^2.264.0",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0"
   },
   "devDependencies": {
-    "vss-web-extension-sdk": "5.141.0"
-  }
+    "@dotenvx/dotenvx": "^1.51.1",
+    "@types/react": "^16.14.67",
+    "@types/react-dom": "^16.9.25",
+    "copy-webpack-plugin": "^13.0.1",
+    "css-loader": "^7.1.2",
+    "es6-promise": "^4.2.8",
+    "rimraf": "^6.1.0",
+    "sass": "^1.93.3",
+    "sass-loader": "^16.0.6",
+    "style-loader": "^4.0.0",
+    "syncpack": "^13.0.4",
+    "tfx-cli": "^0.22.1",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
+  },
+  "repository": "microsoft/azdo-extension-team-randomizer",
+  "scripts": {
+    "build:dev": "npm run compile:dev && dotenvx run --env-file dev.env -- node scripts/tfx.mjs create dev",
+    "build:prod": "npm run compile:prod && dotenvx run --env-file prod.env -- node scripts/tfx.mjs create prod",
+    "clean": "rimraf dist && rimraf -g *.vsix",
+    "clean:modules": "npx rimraf node_modules",
+    "compile:dev": "npm run clean && webpack --mode development",
+    "compile:prod": "npm run clean && webpack --mode production",
+    "format": "syncpack format && npx prettier --config ./.github/linters/.prettierrc.yml --write './**/*.{js,cjs,mjs,ts,tsx,jsx,htm,html,scss,css}'",
+    "publish:dev": "npm run compile:dev && dotenvx run --env-file dev.env -- node scripts/tfx.mjs publish dev",
+    "publish:prod": "npm run compile:prod && dotenvx run --env-file prod.env -- node scripts/tfx.mjs publish prod",
+    "start:dev": "webpack-dev-server --mode development --progress --open",
+    "start:prod": "webpack-dev-server --mode production --progress --open"
+  },
+  "type": "module"
 }

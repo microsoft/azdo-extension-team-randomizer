@@ -1,0 +1,91 @@
+@use '../../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+@use '../table.scss';
+
+.panel-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+
+  .panel-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: platformCommon.$spacing-16;
+    padding: platformCommon.$spacing-4;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .panel-card {
+    background-color: platformCommon.$calloutFilteredBackgroundColor;
+    align-self: stretch;
+    width: 100%;
+  }
+
+  .panel-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: platformCommon.$spacing-12;
+  }
+
+  .row {
+    display: flex;
+    gap: platformCommon.$spacing-16;
+  }
+}
+
+.panel-card-text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.panel-card-placeholder {
+  color: platformCommon.$secondary-text;
+}
+
+.panel-current-member {
+  display: flex;
+  align-items: center;
+  gap: platformCommon.$spacing-12;
+}
+
+.panel-current-member-text {
+  display: flex;
+  flex-direction: column;
+  gap: platformCommon.$spacing-4;
+}
+
+.panel-current-member-name {
+  font-weight: 600;
+}
+
+.panel-current-member-unique {
+  color: platformCommon.$secondary-text;
+}
+
+.panel-table-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.panel-summary {
+  display: flex;
+  gap: platformCommon.$spacing-16;
+  color: platformCommon.$secondary-text;
+}
+
+.panel-actions {
+  display: flex;
+  gap: platformCommon.$spacing-8;
+}
+
+.panel-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}

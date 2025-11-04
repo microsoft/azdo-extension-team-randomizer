@@ -1,0 +1,11 @@
+{
+  "baseUri": "https://localhost:33000",
+  "id": "team-member-randomizer-dev",
+  "name": "Team Member Randomizer (DEV)",
+  "publisher": "",
+  "public": false,
+  "galleryFlags": [
+    "Private"
+  ],
+  "version": "0.0.9"
+}

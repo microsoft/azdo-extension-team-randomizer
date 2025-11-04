@@ -1,0 +1,115 @@
+@use '../node_modules/azure-devops-ui/Core/_platformCommon.scss';
+
+.members-table-container {
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  border-bottom-left-radius: platformCommon.$radius-medium;
+  border-bottom-right-radius: platformCommon.$radius-medium;
+  background-color: platformCommon.$calloutBackgroundColor;
+  box-sizing: border-box;
+}
+
+.members-table-loading,
+.members-table-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: platformCommon.$spacing-16;
+  border: 1px solid platformCommon.$subtleBorderColor;
+  border-top: 0;
+  border-radius: 0 0 platformCommon.$radius-medium platformCommon.$radius-medium;
+  box-sizing: border-box;
+  background-color: platformCommon.$calloutBackgroundColor;
+  color: platformCommon.$secondary-text;
+  text-align: center;
+}
+
+.members-table {
+  width: 100%;
+  border-top: 0;
+  border-radius: 0 0 platformCommon.$radius-medium platformCommon.$radius-medium;
+  overflow: hidden;
+  background-color: platformCommon.$calloutBackgroundColor;
+}
+
+.members-table .bolt-table-row {
+  background-color: platformCommon.$calloutBackgroundColor;
+}
+
+.members-table .bolt-table-cell-content {
+  padding-block: platformCommon.$spacing-12;
+}
+
+.member-checkbox-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.member-name-cell {
+  display: flex;
+  align-items: center;
+  gap: platformCommon.$spacing-8;
+}
+
+.member-name-cell .bolt-coin {
+  margin-block: platformCommon.$spacing-8;
+}
+
+.member-name-text {
+  display: flex;
+  flex-direction: column;
+  gap: platformCommon.$spacing-4;
+  font-weight: platformCommon.$fontWeightSemiBold;
+  color: platformCommon.$textColor;
+}
+
+.member-name-text .secondary-text {
+  font-weight: normal;
+  color: platformCommon.$secondary-text;
+}
+
+.member-type-label {
+  display: inline-flex;
+  align-items: center;
+  padding: platformCommon.$spacing-4 platformCommon.$spacing-8;
+  border-radius: platformCommon.$radius-medium;
+  background-color: platformCommon.$neutral-20;
+  color: platformCommon.$secondary-text;
+  font-size: platformCommon.$fontSizeM;
+  line-height: 1.3;
+}
+
+.member-type-label-team {
+  background-color: platformCommon.$communication-tint-10;
+  color: platformCommon.$text-on-communication-background;
+}
+
+.member-type-label-directory {
+  background-color: platformCommon.$neutral-10;
+  color: platformCommon.$secondary-text;
+}
+
+.member-type-label-custom {
+  background-color: platformCommon.$status-warning-background;
+  color: platformCommon.$status-warning-text;
+}
+
+.member-actions-cell {
+  padding-inline-end: platformCommon.$spacing-8;
+}
+
+.member-actions-content {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.member-actions-content .bolt-button-icon {
+  color: platformCommon.$secondary-text;
+}

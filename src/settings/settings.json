@@ -1,0 +1,21 @@
+{
+  "contributions": [
+    {
+      "id": "settings",
+      "type": "ms.vss-web.hub",
+      "description": "Team Member Randomizer settings",
+      "targets": [
+        "ms.vss-web.project-admin-hub-group"
+      ],
+      "properties": {
+        "name": "Team Member Randomizer",
+        "order": 100,
+        "uri": "dist/settings/settings.html",
+        "iconProps": {
+          "iconName": "Teamwork",
+          "className": "admin-tab-icon"
+        }
+      }
+    }
+  ]
+}
