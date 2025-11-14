@@ -1,23 +1,32 @@
-import * as SDK from 'azure-devops-extension-sdk';
 import * as API from 'azure-devops-extension-api';
 import { logger } from '../shared/logger';
+import { initExtension, getSdk } from '../shared/sdk';
 import { APP_TITLE, APP_DESCRIPTION } from '../shared/constants';
 
 const log = logger.createChild('Button');
 
+interface ButtonContext {
+  team: {
+    id: string;
+    name?: string;
+  };
+}
+
 class Button {
   private async _getProjectInfo() {
-    const projectService = await SDK.getService<API.IProjectPageService>(API.CommonServiceIds.ProjectPageService);
+    const sdk = getSdk();
+    const projectService = await sdk.getService<API.IProjectPageService>(API.CommonServiceIds.ProjectPageService);
     const project = await projectService.getProject();
 
     return project;
   }
 
-  public async execute(context: any) {
+  public async execute(context: ButtonContext) {
     const project = await this._getProjectInfo();
-    const layoutService = await SDK.getService<API.IHostPageLayoutService>(API.CommonServiceIds.HostPageLayoutService);
+    const sdk = getSdk();
+    const layoutService = await sdk.getService<API.IHostPageLayoutService>(API.CommonServiceIds.HostPageLayoutService);
 
-    const panelId = `${SDK.getExtensionContext().id}.panel`;
+    const panelId = `${getSdk().getExtensionContext().id}.panel`;
     const panelOptions: API.IPanelOptions<{}> = {
       title: APP_TITLE,
       description: APP_DESCRIPTION,
@@ -46,13 +55,12 @@ class Button {
 }
 
 const buttonHandler = {
-  execute: (context: any) => {
+  execute: (context: ButtonContext) => {
     const action = new Button();
     action.execute(context);
   }
 };
 
-SDK.init();
-SDK.ready().then(() => {
-  SDK.register('button', buttonHandler);
+void initExtension(false).then(() => {
+  getSdk().register('button', buttonHandler);
 });

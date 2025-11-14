@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as SDK from 'azure-devops-extension-sdk';
 import * as API from 'azure-devops-extension-api';
 import { CoreRestClient, WebApiTeam } from 'azure-devops-extension-api/Core';
 import { DropdownSelection } from 'azure-devops-ui/Utilities/DropdownSelection';
@@ -9,6 +8,7 @@ import { SortOrder, ColumnSorting } from 'azure-devops-ui/Table';
 import { IHeaderCommandBarItem } from 'azure-devops-ui/HeaderCommandBar';
 import { IIdentity as IPickerIdentity } from 'azure-devops-ui/IdentityPicker';
 import { logger } from '../shared/logger';
+import { initExtension, getSdk } from '../shared/sdk';
 import { getAvailableMembers } from '../dataService';
 import { PersistedSettings, StatusMessage, StoredMembersByTeam } from './types';
 import { MemberViewModel } from '../shared/types';
@@ -125,10 +125,11 @@ export function useSettingsState(): UseSettingsStateResult {
     let mounted = true;
     const initialize = async () => {
       try {
-        SDK.init({ applyTheme: true });
-        await SDK.ready();
+        await initExtension(true);
         log.debug('SDK ready, initializing settings');
-        const projectService = await SDK.getService<API.IProjectPageService>(API.CommonServiceIds.ProjectPageService);
+        const projectService = await getSdk().getService<API.IProjectPageService>(
+          API.CommonServiceIds.ProjectPageService
+        );
         const project = await projectService.getProject();
         if (!project) throw new Error('Project context is unavailable.');
         if (!mounted) return;
@@ -155,13 +156,13 @@ export function useSettingsState(): UseSettingsStateResult {
         setBaselineSelections(baselineSelectionSnapshot);
         setCustomMembers(storedCustomMembers);
         setPersistedCustomMembers(persistedCustomSnapshot);
-        SDK.notifyLoadSucceeded();
-        SDK.resize();
+        getSdk().notifyLoadSucceeded();
+        getSdk().resize();
       } catch (error) {
         log.error('Initialization failed', error);
         const message = error instanceof Error ? error.message : 'Failed to initialize settings page.';
         setStatus({ type: 'error', message });
-        SDK.notifyLoadFailed(error instanceof Error ? error : new Error(String(error)));
+        getSdk().notifyLoadFailed(error instanceof Error ? error : new Error(String(error)));
       } finally {
         if (mounted) setIsInitializing(false);
       }
@@ -174,7 +175,7 @@ export function useSettingsState(): UseSettingsStateResult {
 
   // Resize on key changes
   React.useEffect(() => {
-    if (!isInitializing) SDK.resize();
+    if (!isInitializing) getSdk().resize();
   }, [isInitializing, members.length, isTeamLoading]);
   // Reset identity picker on team change
   React.useEffect(() => {
@@ -217,7 +218,7 @@ export function useSettingsState(): UseSettingsStateResult {
         setStatus({ type: 'error', message: MESSAGE_TEAM_LOAD_ERROR });
       } finally {
         setIsTeamLoading(false);
-        SDK.resize();
+        getSdk().resize();
       }
     },
     [projectInfo, customMembers, persistedSelections]

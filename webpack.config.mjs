@@ -80,7 +80,7 @@ export default (_, argv) => {
       new CopyWebpackPlugin({
         patterns: [
           { from: '**/*.html', to: '[name]/[name][ext]', context: 'src' },
-          { from: '**/*.{png,jpg,jpeg,gif,svg}', to: './', context: 'src' },
+          { from: '**/*.{png,jpg,jpeg,gif,svg,json}', to: './', context: 'src' },
           { from: './OVERVIEW.md', to: './' }
         ]
       })

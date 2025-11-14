@@ -1,10 +1,10 @@
 import * as React from 'react';
-import * as SDK from 'azure-devops-extension-sdk';
 import * as API from 'azure-devops-extension-api';
 import { CoreRestClient, WebApiTeam } from 'azure-devops-extension-api/Core';
 import { DropdownSelection } from 'azure-devops-ui/Utilities/DropdownSelection';
 import { IListBoxItem } from 'azure-devops-ui/ListBox';
 import { logger } from '../shared/logger';
+import { initExtension, getSdk } from '../shared/sdk';
 import { getAvailableMembers, saveAvailableMembers } from '../dataService';
 import { fetchTeamMembers } from '../settings/settingsService';
 import { StatusMessage } from '../settings/types';
@@ -26,10 +26,8 @@ import {
   getCurrentDayKey,
   getHolidayDateKey,
   getHolidayOptionsForDate,
-  HOLIDAYS_SOURCE_URL,
   normalizeHolidayOfDay,
   normalizeQuestionOfDay,
-  QUESTIONS_SOURCE_URL,
   selectNextHoliday,
   selectNextQuestion
 } from './dailyContent';
@@ -126,32 +124,32 @@ export function usePanelState(): PanelStateReturn {
 
   // Initial load: project/team context.
   React.useEffect(() => {
-    SDK.init({ applyTheme: true });
     let disposed = false;
 
     const initialize = async () => {
       try {
-        await SDK.ready();
-        const configuration = SDK.getConfiguration() as { configuration?: PanelConfiguration };
-        const projectService = await SDK.getService<API.IProjectPageService>(API.CommonServiceIds.ProjectPageService);
+        await initExtension(true);
+        const sdk = getSdk();
+        const configuration = sdk.getConfiguration() as { configuration?: PanelConfiguration };
+        const projectService = await sdk.getService<API.IProjectPageService>(API.CommonServiceIds.ProjectPageService);
         const projectInfo = await projectService.getProject();
         const projectIdentifier = configuration?.configuration?.project?.id ?? projectInfo?.id;
         if (!projectIdentifier) throw new Error('Project context is unavailable.');
         const teamIdentifier = configuration?.configuration?.team?.id;
-        const teamResults = await coreClient.getTeams(projectIdentifier, undefined, 100, 0);
+        const teamResults = await coreClient.getTeams(projectIdentifier, undefined, 20, 0);
         teamResults.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         if (disposed || !mountedRef.current) return;
         setProjectId(projectIdentifier);
         setTeams(teamResults);
-        const teamContext = SDK.getTeamContext?.();
+        const teamContext = sdk.getTeamContext?.();
         const contextTeamId = teamContext?.id;
         const hasContextTeam = contextTeamId && teamResults.some((t) => t.id === contextTeamId);
         const hasConfiguredTeam = teamIdentifier && teamResults.some((t) => t.id === teamIdentifier);
         const defaultTeamId = hasContextTeam ? contextTeamId : hasConfiguredTeam ? teamIdentifier : teamResults[0]?.id;
         setSelectedTeamId(defaultTeamId);
         setIsInitializing(false);
-        SDK.notifyLoadSucceeded();
-        SDK.resize();
+        getSdk().notifyLoadSucceeded();
+        getSdk().resize();
       } catch (error) {
         log.error('Failed to initialize panel', error);
         if (!disposed && mountedRef.current) {
@@ -159,7 +157,7 @@ export function usePanelState(): PanelStateReturn {
           setIsInitializing(false);
         }
         const failure = error instanceof Error ? error : new Error(String(error));
-        SDK.notifyLoadFailed(failure);
+        getSdk().notifyLoadFailed(failure);
       }
     };
     void initialize();
@@ -170,8 +168,12 @@ export function usePanelState(): PanelStateReturn {
 
   // Resize on dynamic changes.
   React.useEffect(() => {
-    if (!isInitializing) SDK.resize();
-  }, [isInitializing, isTeamLoading, members.length, status]);
+    if (isInitializing) return;
+    const handle = setTimeout(() => {
+      getSdk().resize();
+    }, 100);
+    return () => clearTimeout(handle);
+  }, [isInitializing, members.length]);
 
   // Sync dropdown selection state.
   React.useEffect(() => {
@@ -186,7 +188,7 @@ export function usePanelState(): PanelStateReturn {
 
   const fetchQuestions = React.useCallback(async (): Promise<QuestionOfDay[]> => {
     if (questionsCacheRef.current) return questionsCacheRef.current;
-    const response = await fetch(QUESTIONS_SOURCE_URL, { cache: 'no-store' });
+    const response = await fetch('../qotd.json', { cache: 'no-store' });
     if (!response.ok) throw new Error(`Failed to load questions. (${response.status})`);
     const payload = (await response.json()) as unknown;
     const questions = Array.isArray(payload)
@@ -199,7 +201,7 @@ export function usePanelState(): PanelStateReturn {
 
   const fetchHolidayDataset = React.useCallback(async (): Promise<HolidayDatasetEntry[]> => {
     if (holidayDatasetRef.current) return holidayDatasetRef.current;
-    const response = await fetch(HOLIDAYS_SOURCE_URL, { cache: 'no-store' });
+    const response = await fetch('../hotd.json', { cache: 'no-store' });
     if (!response.ok) throw new Error(`Failed to load holiday data. (${response.status})`);
     const payload = (await response.json()) as unknown;
     const entries = Array.isArray(payload)
@@ -300,26 +302,18 @@ export function usePanelState(): PanelStateReturn {
       setCurrentMemberId(undefined);
       setStatus(undefined);
       try {
-        const [teamMembers, settings] = await Promise.all([
-          fetchTeamMembers(projectId, teamId),
-          getAvailableMembers<RandomizerSettings>()
-        ]);
+        const teamMembers = await fetchTeamMembers(projectId, teamId);
+        const settings = settingsRef.current ?? (await getAvailableMembers<RandomizerSettings>());
         if (!mountedRef.current || selectedTeamRef.current !== teamId) return;
         settingsRef.current = settings;
         const randomizer = settings._randomizerData ?? {};
         const dayData = randomizer[dayKey] as { question?: unknown; hotd?: unknown } | undefined;
         const storedQuestion = normalizeQuestionOfDay(dayData?.question);
         if (storedQuestion) setQuestionOfDay(storedQuestion);
-        else {
-          setQuestionOfDay(undefined);
-          void refreshDailyContent('question');
-        }
+        else setQuestionOfDay(undefined);
         const storedHoliday = normalizeHolidayOfDay(dayData?.hotd);
         if (storedHoliday) setHolidayOfDay(storedHoliday);
-        else {
-          setHolidayOfDay(undefined);
-          void refreshDailyContent('holiday');
-        }
+        else setHolidayOfDay(undefined);
         // Cast settings to PersistedSettings for normalization; extra randomizer data is ignored safely.
         const normalized = normalizeStoredSettings(
           settings as unknown as import('../settings/types').PersistedSettings
@@ -382,10 +376,27 @@ export function usePanelState(): PanelStateReturn {
   // Precompute remaining eligible count (includes current member if still pending) to avoid repeated filter operations.
   // Remaining eligible excludes the current active member if it's still pending,
   // so we can add it back exactly once below (avoids double counting).
-  const remainingEligibleCount = React.useMemo(
-    () => members.filter((m) => !completedMemberIds.has(m.id) && m.id !== currentMemberId).length,
-    [members, completedMemberIds, currentMemberId]
-  );
+  const remainingEligibleCount = eligibleMembers.length;
+
+  React.useEffect(() => {
+    if (isInitializing || isTeamLoading) return;
+    if (!selectedTeamId) return;
+    if (!questionOfDay && !isQuestionLoading) {
+      void refreshDailyContent('question');
+    }
+    if (!holidayOfDay && !isHolidayLoading) {
+      void refreshDailyContent('holiday');
+    }
+  }, [
+    isInitializing,
+    isTeamLoading,
+    selectedTeamId,
+    questionOfDay,
+    holidayOfDay,
+    isQuestionLoading,
+    isHolidayLoading,
+    refreshDailyContent
+  ]);
 
   const handleRandomize = React.useCallback(async () => {
     if (!selectedTeamId) return;
