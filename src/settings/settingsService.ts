@@ -52,7 +52,16 @@ export async function fetchTeamMembers(
       group.forEach((item) => results.push(item));
     });
 
-    return results;
+    const uniqueMembers = new Map<string, TeamMember>();
+
+    for (const member of results) {
+      const id = member.identity.id;
+      if (!uniqueMembers.has(id)) {
+        uniqueMembers.set(id, member);
+      }
+    }
+
+    return Array.from(uniqueMembers.values());
   } catch (error) {
     log.error('Failed to fetch team members', error);
     throw error;
