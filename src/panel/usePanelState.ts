@@ -74,6 +74,7 @@ export type PanelStateReturn = {
   totalMembers: number;
   completedCount: number;
   remainingCount: number;
+  excludedMemberIds: Set<string>;
   actions: {
     refreshQuestionOfDay: () => void;
     refreshHolidayOfDay: () => void;
@@ -82,6 +83,7 @@ export type PanelStateReturn = {
     selectPrevious: () => void;
     selectTeam: (_event: React.SyntheticEvent<HTMLElement>, option: IListBoxItem<WebApiTeam> | undefined) => void;
     dismissStatus: () => void;
+    toggleMemberInclusion: (memberId: string) => void;
   };
 };
 
@@ -101,6 +103,7 @@ export function usePanelState(): PanelStateReturn {
   const [selectedTeamId, setSelectedTeamId] = React.useState<string | undefined>();
   const [members, setMembers] = React.useState<MemberViewModel[]>([]);
   const [completedMemberIds, setCompletedMemberIds] = React.useState<Set<string>>(new Set());
+  const [excludedMemberIds, setExcludedMemberIds] = React.useState<Set<string>>(new Set());
   const [currentMemberId, setCurrentMemberId] = React.useState<string | undefined>();
   const [selectionHistory, setSelectionHistory] = React.useState<string[]>([]);
   const [status, setStatus] = React.useState<StatusMessage | undefined>();
@@ -339,6 +342,7 @@ export function usePanelState(): PanelStateReturn {
         if (activeMemberId) history.push(activeMemberId);
         setMembers(combinedMembers);
         setCompletedMemberIds(completedSet);
+        setExcludedMemberIds(new Set());
         setCurrentMemberId(activeMemberId);
         setSelectionHistory(history);
       } catch (error) {
@@ -360,14 +364,16 @@ export function usePanelState(): PanelStateReturn {
     if (!projectId || !selectedTeamId) {
       setMembers([]);
       setCompletedMemberIds(new Set());
+      setExcludedMemberIds(new Set());
       return;
     }
     void loadTeamData(selectedTeamId);
   }, [loadTeamData, projectId, selectedTeamId]);
 
   const eligibleMembers = React.useMemo(
-    () => members.filter((m) => !completedMemberIds.has(m.id) && m.id !== currentMemberId),
-    [completedMemberIds, currentMemberId, members]
+    () =>
+      members.filter((m) => !completedMemberIds.has(m.id) && m.id !== currentMemberId && !excludedMemberIds.has(m.id)),
+    [completedMemberIds, currentMemberId, members, excludedMemberIds]
   );
   const currentMember = React.useMemo(() => members.find((m) => m.id === currentMemberId), [members, currentMemberId]);
   const hasActiveMemberPending = currentMemberId ? !completedMemberIds.has(currentMemberId) : false;
@@ -407,7 +413,7 @@ export function usePanelState(): PanelStateReturn {
     const updatedCompleted = new Set(completedMemberIds);
     const isCurrentPending = currentMemberId ? !completedMemberIds.has(currentMemberId) : false;
     if (isCurrentPending && currentMemberId) updatedCompleted.add(currentMemberId);
-    const remainingMembers = members.filter((m) => !updatedCompleted.has(m.id));
+    const remainingMembers = members.filter((m) => !updatedCompleted.has(m.id) && !excludedMemberIds.has(m.id));
     const nextMember =
       remainingMembers.length > 0 ? remainingMembers[Math.floor(Math.random() * remainingMembers.length)] : undefined;
     setCompletedMemberIds(updatedCompleted);
@@ -437,12 +443,14 @@ export function usePanelState(): PanelStateReturn {
       if (didAppendHistory) setSelectionHistory((p) => p.slice(0, -1));
       setStatus({ type: 'error', message: MESSAGE_RANDOMIZE_RECORD_ERROR });
     }
-  }, [completedMemberIds, currentMemberId, dayKey, members, persistRandomizerData, selectedTeamId]);
+  }, [completedMemberIds, currentMemberId, dayKey, members, persistRandomizerData, selectedTeamId, excludedMemberIds]);
 
   const handleResetSelections = React.useCallback(async () => {
-    if (!selectedTeamId || (completedMemberIds.size === 0 && !hasActiveMemberPending)) return;
+    if (!selectedTeamId || (completedMemberIds.size === 0 && !hasActiveMemberPending && excludedMemberIds.size === 0))
+      return;
     const previousCompleted = new Set(completedMemberIds);
     setCompletedMemberIds(new Set());
+    setExcludedMemberIds(new Set());
     const previousCurrent = currentMemberId;
     setCurrentMemberId(undefined);
     setSelectionHistory([]);
@@ -511,9 +519,19 @@ export function usePanelState(): PanelStateReturn {
 
   const dismissStatus = React.useCallback(() => setStatus(undefined), []);
 
-  const totalMembers = members.length;
-  const completedCount = completedMemberIds.size;
-  const remainingCount = remainingEligibleCount + (hasActiveMemberPending ? 1 : 0);
+  const toggleMemberInclusion = React.useCallback((memberId: string) => {
+    setExcludedMemberIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(memberId)) next.delete(memberId);
+      else next.add(memberId);
+      return next;
+    });
+  }, []);
+
+  const totalMembers = members.length - excludedMemberIds.size;
+  const completedCount = Array.from(completedMemberIds).filter((id) => !excludedMemberIds.has(id)).length;
+  const isCurrentExcluded = currentMemberId ? excludedMemberIds.has(currentMemberId) : false;
+  const remainingCount = remainingEligibleCount + (hasActiveMemberPending && !isCurrentExcluded ? 1 : 0);
 
   const disableRandomize =
     isInitializing || isTeamLoading || isSaving || (!hasActiveMemberPending && remainingEligibleCount === 0);
@@ -524,7 +542,10 @@ export function usePanelState(): PanelStateReturn {
     selectionHistory.length === 0 ||
     (selectionHistory.length === 1 && !completedMemberIds.has(selectionHistory[0]));
   const disableReset =
-    isInitializing || isTeamLoading || isSaving || (completedMemberIds.size === 0 && !hasActiveMemberPending);
+    isInitializing ||
+    isTeamLoading ||
+    isSaving ||
+    (completedMemberIds.size === 0 && !hasActiveMemberPending && excludedMemberIds.size === 0);
 
   return {
     dropdownSelection,
@@ -552,6 +573,7 @@ export function usePanelState(): PanelStateReturn {
     totalMembers,
     completedCount,
     remainingCount,
+    excludedMemberIds,
     actions: {
       refreshQuestionOfDay: () => void refreshDailyContent('question'),
       refreshHolidayOfDay: () => void refreshDailyContent('holiday'),
@@ -559,7 +581,8 @@ export function usePanelState(): PanelStateReturn {
       resetSelections: () => void handleResetSelections(),
       selectPrevious: () => void handleSelectPrevious(),
       selectTeam: handleTeamSelection,
-      dismissStatus
+      dismissStatus,
+      toggleMemberInclusion
     }
   };
 }

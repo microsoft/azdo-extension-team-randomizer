@@ -79,9 +79,7 @@ try {
   log('Done.');
 } catch (e) {
   log('Failed.');
-  if (String(e).includes('tfx')) {
-    err('tfx-cli not found? Install dev dependency or add to PATH.');
-  }
+  err(e);
 }
 
 function log(m) {

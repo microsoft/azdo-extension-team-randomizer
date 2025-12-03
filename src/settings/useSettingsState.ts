@@ -13,8 +13,6 @@ import { getAvailableMembers } from '../dataService';
 import { PersistedSettings, StatusMessage, StoredMembersByTeam } from './types';
 import { MemberViewModel } from '../shared/types';
 import {
-  areSelectionsEqual,
-  areStoredMemberListsEqual,
   cloneMembersByTeam,
   createCustomIdentityFromInput,
   findTeamMemberConflictForIdentity,
@@ -83,6 +81,7 @@ export interface UseSettingsStateResult {
   isSaving: boolean;
   // Sort
   memberSorting: { columnId: string; sortOrder: SortOrder };
+  onInputChange: (value: string) => string;
 }
 
 export function useSettingsState(): UseSettingsStateResult {
@@ -114,7 +113,11 @@ export function useSettingsState(): UseSettingsStateResult {
   });
 
   // Custom hook for identity picker
-  const { provider: identityPickerProvider, availableIdentities } = useIdentityPicker({
+  const {
+    provider: identityPickerProvider,
+    availableIdentities,
+    onInputChange
+  } = useIdentityPicker({
     projectMembers,
     members,
     customMembers
@@ -482,6 +485,7 @@ export function useSettingsState(): UseSettingsStateResult {
     dismissStatus,
     isDirty,
     isSaving,
-    memberSorting
+    memberSorting,
+    onInputChange
   };
 }

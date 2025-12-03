@@ -19,6 +19,7 @@ export interface TeamConfigurationCardProps {
   onIdentityChange: (identity?: IPickerIdentity) => boolean;
   onResolveIdentity: (input: string) => IPickerIdentity | undefined;
   onAddMember: () => void;
+  onInputChange?: (value: string) => string;
 }
 
 export const TeamConfigurationCard: React.FC<TeamConfigurationCardProps> = ({
@@ -30,13 +31,14 @@ export const TeamConfigurationCard: React.FC<TeamConfigurationCardProps> = ({
   selectedIdentity,
   onIdentityChange,
   onResolveIdentity,
-  onAddMember
+  onAddMember,
+  onInputChange
 }) => {
   // Custom suggestion renderer for custom identities
   const renderCustomSuggestion = React.useCallback(
     (identity: IPickerIdentity) => (
       <div className='custom-identity-suggestion'>
-        <span className='custom-identity-suggestion-title'>Use custom value</span>
+        <span className='custom-identity-suggestion-title'>Use custom value: </span>
         <span className='custom-identity-suggestion-value bolt-text-secondary'>{identity.displayName}</span>
       </div>
     ),
@@ -49,7 +51,15 @@ export const TeamConfigurationCard: React.FC<TeamConfigurationCardProps> = ({
         <TeamSelector teams={teams} selection={dropdownSelection} onSelect={onTeamSelect} />
         {selectedTeamId && (
           <FormItem label='Add member'>
-            <div className='add-member-row'>
+            <div
+              className='add-member-row'
+              onInput={(e) => {
+                const target = e.target as HTMLInputElement;
+                if (onInputChange) {
+                  onInputChange(target.value);
+                }
+              }}
+            >
               <IdentityPickerDropdown
                 pickerProvider={identityPickerProvider}
                 value={selectedIdentity}

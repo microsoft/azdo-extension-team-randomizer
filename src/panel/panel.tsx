@@ -70,6 +70,8 @@ const PanelPage: React.FC = () => {
             currentMemberId={state.currentMemberId}
             completedMemberIds={state.completedMemberIds}
             isTeamLoading={state.isTeamLoading}
+            excludedMemberIds={state.excludedMemberIds}
+            onToggleInclusion={state.actions.toggleMemberInclusion}
           />
         </div>
       </div>
