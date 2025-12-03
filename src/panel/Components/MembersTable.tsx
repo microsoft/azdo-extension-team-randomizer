@@ -4,6 +4,7 @@ import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
 import { ZeroData } from 'azure-devops-ui/ZeroData';
 import { Status, Statuses } from 'azure-devops-ui/Status';
 import { Persona, PersonaSize } from 'azure-devops-ui/Persona';
+import { Checkbox } from 'azure-devops-ui/Checkbox';
 import { ArrayItemProvider } from 'azure-devops-ui/Utilities/Provider';
 import { MemberViewModel } from '../../shared/types';
 import { toPersonaIdentity } from '../../settings/memberUtils';
@@ -13,37 +14,60 @@ export interface MembersTableProps {
   currentMemberId?: string;
   completedMemberIds: Set<string>;
   isTeamLoading: boolean;
+  excludedMemberIds: Set<string>;
+  onToggleInclusion: (memberId: string) => void;
 }
 
 export const MembersTable: React.FC<MembersTableProps> = ({
   members,
   currentMemberId,
   completedMemberIds,
-  isTeamLoading
+  isTeamLoading,
+  excludedMemberIds,
+  onToggleInclusion
 }) => {
   // Include status-driving state in memo deps so Table receives a fresh provider when status changes.
   const itemProvider = React.useMemo(
     () => new ArrayItemProvider<MemberViewModel>(members),
-    [members, currentMemberId, completedMemberIds]
+    [members, currentMemberId, completedMemberIds, excludedMemberIds]
   );
 
   const columns = React.useMemo<ITableColumn<MemberViewModel>[]>(
     () => [
       {
+        id: 'selection',
+        name: '',
+        width: 40,
+        minWidth: 40,
+        maxWidth: 40,
+        renderCell: (_rowIndex, columnIndex, tableColumn, item) => {
+          const isExcluded = excludedMemberIds.has(item.id);
+          return (
+            <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
+              <Checkbox checked={!isExcluded} onChange={() => onToggleInclusion(item.id)} />
+            </TableCell>
+          );
+        }
+      },
+      {
         id: 'member',
         name: 'Member',
         width: -70,
         minWidth: 240,
-        renderCell: (_rowIndex, columnIndex, tableColumn, item) => (
-          <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
-            <div className='member-name-cell'>
-              <Persona identity={toPersonaIdentity(item)} size={PersonaSize.size40} />
-              <div className='member-name-text'>
-                <div>{item.displayName}</div>
+        renderCell: (_rowIndex, columnIndex, tableColumn, item) => {
+          const isExcluded = excludedMemberIds.has(item.id);
+          const className = isExcluded ? 'member-name-cell member-excluded' : 'member-name-cell';
+          return (
+            <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
+              <div className={className}>
+                <Persona identity={toPersonaIdentity(item)} size={PersonaSize.size40} />
+                <div className='member-name-text'>
+                  <div>{item.displayName}</div>
+                </div>
               </div>
-            </div>
-          </TableCell>
-        )
+            </TableCell>
+          );
+        }
       },
       {
         id: 'status',
@@ -54,16 +78,26 @@ export const MembersTable: React.FC<MembersTableProps> = ({
         renderCell: (_rowIndex, columnIndex, tableColumn, item) => {
           const isCurrent = currentMemberId === item.id;
           const isCompleted = completedMemberIds.has(item.id);
-          const statusProps = isCurrent ? Statuses.Running : isCompleted ? Statuses.Success : Statuses.Queued;
+          const isExcluded = excludedMemberIds.has(item.id);
+          const statusProps = isExcluded
+            ? Statuses.Skipped
+            : isCurrent
+              ? Statuses.Running
+              : isCompleted
+                ? Statuses.Success
+                : Statuses.Queued;
+          const className = isExcluded ? 'member-excluded' : undefined;
           return (
             <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
-              <Status {...statusProps} />
+              <div className={className}>
+                <Status {...statusProps} />
+              </div>
             </TableCell>
           );
         }
       }
     ],
-    [completedMemberIds, currentMemberId]
+    [completedMemberIds, currentMemberId, excludedMemberIds, onToggleInclusion]
   );
 
   if (isTeamLoading) {
@@ -88,7 +122,7 @@ export const MembersTable: React.FC<MembersTableProps> = ({
   }
 
   // Force a remount when current or completed state changes to ensure Status cells repaint.
-  const tableKey = `${currentMemberId || 'none'}-${completedMemberIds.size}`;
+  const tableKey = `${currentMemberId || 'none'}-${completedMemberIds.size}-${excludedMemberIds.size}`;
   return (
     <Table
       key={tableKey}

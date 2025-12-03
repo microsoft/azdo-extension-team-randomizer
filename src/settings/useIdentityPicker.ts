@@ -27,11 +27,18 @@ export interface UseIdentityPickerOptions {
 export interface UseIdentityPickerResult {
   provider: IPeoplePickerProvider;
   availableIdentities: IPickerIdentity[];
+  onInputChange: (value: string) => string;
 }
 
 export function useIdentityPicker(options: UseIdentityPickerOptions): UseIdentityPickerResult {
   const { projectMembers, members, customMembers } = options;
   const [remoteProvider, setRemoteProvider] = React.useState<AzurePeoplePickerProvider | undefined>();
+  const rawInputRef = React.useRef('');
+
+  const onInputChange = React.useCallback((value: string) => {
+    rawInputRef.current = value;
+    return value;
+  }, []);
 
   React.useEffect(() => {
     const provider = new AzurePeoplePickerProvider();
@@ -104,7 +111,14 @@ export function useIdentityPicker(options: UseIdentityPickerOptions): UseIdentit
       onFilterIdentities: async (filter: string, selectedItems?: IPickerIdentity[]) => {
         const selectedSet = new Set<string>((selectedItems ?? []).map((item) => item.entityId.toLowerCase()));
         const combined = new Map<string, IPickerIdentity>();
-        const trimmedRaw = filter.trim();
+
+        // Use raw input if available and matches the filter (case-insensitive check to be safe), otherwise fallback to filter
+        let currentRaw = rawInputRef.current;
+        if (currentRaw.trim().toLowerCase() !== filter.trim().toLowerCase()) {
+          currentRaw = filter;
+        }
+
+        const trimmedRaw = currentRaw.trim();
         const trimmed = trimmedRaw.toLowerCase();
 
         if (trimmedRaw) {
@@ -202,5 +216,5 @@ export function useIdentityPicker(options: UseIdentityPickerOptions): UseIdentit
     };
   }, [availableIdentities, remoteProvider]);
 
-  return { provider, availableIdentities };
+  return { provider, availableIdentities, onInputChange };
 }

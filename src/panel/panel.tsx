@@ -4,7 +4,6 @@ import './panel.scss';
 import { usePanelState } from './usePanelState';
 import {
   CurrentMemberCard,
-  TeamSelector,
   StatusBanner,
   SelectionSummary,
   SelectionActions,
@@ -49,7 +48,6 @@ const PanelPage: React.FC = () => {
 
         <CurrentMemberCard member={state.currentMember} isLoading={state.isTeamLoading} />
         <StatusBanner status={state.status} onDismiss={state.actions.dismissStatus} />
-        <TeamSelector teams={state.teams} selection={state.dropdownSelection} onSelect={state.actions.selectTeam} />
         <SelectionSummary
           total={state.totalMembers}
           remaining={state.remainingCount}
@@ -70,6 +68,8 @@ const PanelPage: React.FC = () => {
             currentMemberId={state.currentMemberId}
             completedMemberIds={state.completedMemberIds}
             isTeamLoading={state.isTeamLoading}
+            excludedMemberIds={state.excludedMemberIds}
+            onToggleInclusion={state.actions.toggleMemberInclusion}
           />
         </div>
       </div>

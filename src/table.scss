@@ -1,7 +1,8 @@
 @use '../node_modules/azure-devops-ui/Core/_platformCommon.scss';
 
 .members-table-container {
-  max-height: 420px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   margin: 0;

@@ -58,6 +58,7 @@ const SettingsPage: React.FC = () => {
           onIdentityChange={handleIdentityChange}
           onResolveIdentity={handleResolveIdentity}
           onAddMember={handleAddMember}
+          onInputChange={state.onInputChange}
         />
         <MembersCard
           selectedTeamId={selectedTeamId}
