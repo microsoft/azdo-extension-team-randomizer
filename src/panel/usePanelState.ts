@@ -1,8 +1,6 @@
 import * as React from 'react';
 import * as API from 'azure-devops-extension-api';
-import { CoreRestClient, WebApiTeam } from 'azure-devops-extension-api/Core';
-import { DropdownSelection } from 'azure-devops-ui/Utilities/DropdownSelection';
-import { IListBoxItem } from 'azure-devops-ui/ListBox';
+import { CoreRestClient } from 'azure-devops-extension-api/Core';
 import { logger } from '../shared/logger';
 import { initExtension, getSdk } from '../shared/sdk';
 import { getAvailableMembers, saveAvailableMembers } from '../dataService';
@@ -49,8 +47,6 @@ type RefreshKind = 'question' | 'holiday';
 
 /** Public shape returned by the hook for the panel presentation layer. */
 export type PanelStateReturn = {
-  dropdownSelection: DropdownSelection;
-  teams: WebApiTeam[];
   selectedTeamId: string | undefined;
   members: MemberViewModel[];
   completedMemberIds: Set<string>;
@@ -81,14 +77,12 @@ export type PanelStateReturn = {
     randomize: () => void;
     resetSelections: () => void;
     selectPrevious: () => void;
-    selectTeam: (_event: React.SyntheticEvent<HTMLElement>, option: IListBoxItem<WebApiTeam> | undefined) => void;
     dismissStatus: () => void;
     toggleMemberInclusion: (memberId: string) => void;
   };
 };
 
 export function usePanelState(): PanelStateReturn {
-  const dropdownSelection = React.useMemo(() => new DropdownSelection(), []);
   const settingsRef = React.useRef<RandomizerSettings | undefined>(undefined);
   const mountedRef = React.useRef(true);
   const selectedTeamRef = React.useRef<string | undefined>(undefined);
@@ -99,7 +93,6 @@ export function usePanelState(): PanelStateReturn {
   const [isTeamLoading, setIsTeamLoading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [projectId, setProjectId] = React.useState<string | undefined>();
-  const [teams, setTeams] = React.useState<WebApiTeam[]>([]);
   const [selectedTeamId, setSelectedTeamId] = React.useState<string | undefined>();
   const [members, setMembers] = React.useState<MemberViewModel[]>([]);
   const [completedMemberIds, setCompletedMemberIds] = React.useState<Set<string>>(new Set());
@@ -139,16 +132,11 @@ export function usePanelState(): PanelStateReturn {
         const projectIdentifier = configuration?.configuration?.project?.id ?? projectInfo?.id;
         if (!projectIdentifier) throw new Error('Project context is unavailable.');
         const teamIdentifier = configuration?.configuration?.team?.id;
-        const teamResults = await coreClient.getTeams(projectIdentifier, undefined, 20, 0);
-        teamResults.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         if (disposed || !mountedRef.current) return;
         setProjectId(projectIdentifier);
-        setTeams(teamResults);
         const teamContext = sdk.getTeamContext?.();
         const contextTeamId = teamContext?.id;
-        const hasContextTeam = contextTeamId && teamResults.some((t) => t.id === contextTeamId);
-        const hasConfiguredTeam = teamIdentifier && teamResults.some((t) => t.id === teamIdentifier);
-        const defaultTeamId = hasContextTeam ? contextTeamId : hasConfiguredTeam ? teamIdentifier : teamResults[0]?.id;
+        const defaultTeamId = contextTeamId ?? teamIdentifier;
         setSelectedTeamId(defaultTeamId);
         setIsInitializing(false);
         getSdk().notifyLoadSucceeded();
@@ -177,17 +165,6 @@ export function usePanelState(): PanelStateReturn {
     }, 100);
     return () => clearTimeout(handle);
   }, [isInitializing, members.length]);
-
-  // Sync dropdown selection state.
-  React.useEffect(() => {
-    if (!selectedTeamId) {
-      dropdownSelection.clear();
-      return;
-    }
-    const index = teams.findIndex((team) => team.id === selectedTeamId);
-    if (index >= 0) dropdownSelection.select(index);
-    else dropdownSelection.clear();
-  }, [dropdownSelection, selectedTeamId, teams]);
 
   const fetchQuestions = React.useCallback(async (): Promise<QuestionOfDay[]> => {
     if (questionsCacheRef.current) return questionsCacheRef.current;
@@ -330,10 +307,12 @@ export function usePanelState(): PanelStateReturn {
           ? combinedMembersAll.filter((m) => selectionSet.has(m.id))
           : combinedMembersAll;
         const completed = randomizer[dayKey]?.teamMembers?.[teamId] ?? [];
+        const excluded = randomizer[dayKey]?.excludedMembers?.[teamId] ?? [];
         const persistedActiveId = randomizer[dayKey]?.activeMembers?.[teamId];
         const memberIds = new Set(combinedMembers.map((m) => m.id));
         const completedHistory = completed.filter((id) => memberIds.has(id));
         const completedSet = new Set(completedHistory);
+        const excludedSet = new Set(excluded.filter((id) => memberIds.has(id)));
         const activeMemberId =
           persistedActiveId && memberIds.has(persistedActiveId) && !completedSet.has(persistedActiveId)
             ? persistedActiveId
@@ -342,7 +321,7 @@ export function usePanelState(): PanelStateReturn {
         if (activeMemberId) history.push(activeMemberId);
         setMembers(combinedMembers);
         setCompletedMemberIds(completedSet);
-        setExcludedMemberIds(new Set());
+        setExcludedMemberIds(excludedSet);
         setCurrentMemberId(activeMemberId);
         setSelectionHistory(history);
       } catch (error) {
@@ -350,6 +329,7 @@ export function usePanelState(): PanelStateReturn {
         if (mountedRef.current && selectedTeamRef.current === teamId) {
           setMembers([]);
           setCompletedMemberIds(new Set());
+          setExcludedMemberIds(new Set());
           setSelectionHistory([]);
           setStatus({ type: 'error', message: MESSAGE_TEAM_LOAD_ERROR });
         }
@@ -449,6 +429,7 @@ export function usePanelState(): PanelStateReturn {
     if (!selectedTeamId || (completedMemberIds.size === 0 && !hasActiveMemberPending && excludedMemberIds.size === 0))
       return;
     const previousCompleted = new Set(completedMemberIds);
+    const previousExcluded = new Set(excludedMemberIds);
     setCompletedMemberIds(new Set());
     setExcludedMemberIds(new Set());
     const previousCurrent = currentMemberId;
@@ -461,7 +442,8 @@ export function usePanelState(): PanelStateReturn {
         delete nextActiveMembers[selectedTeamId];
         const nextDayData: RandomizerDayData = {
           ...dayData,
-          teamMembers: { ...(dayData.teamMembers ?? {}), [selectedTeamId]: [] }
+          teamMembers: { ...(dayData.teamMembers ?? {}), [selectedTeamId]: [] },
+          excludedMembers: { ...(dayData.excludedMembers ?? {}), [selectedTeamId]: [] }
         };
         if (Object.keys(nextActiveMembers).length > 0) nextDayData.activeMembers = nextActiveMembers;
         else delete nextDayData.activeMembers;
@@ -469,11 +451,20 @@ export function usePanelState(): PanelStateReturn {
       });
     } catch (error) {
       setCompletedMemberIds(previousCompleted);
+      setExcludedMemberIds(previousExcluded);
       setCurrentMemberId(previousCurrent);
       setSelectionHistory(Array.from(previousCompleted));
       setStatus({ type: 'error', message: MESSAGE_RANDOMIZE_RESET_ERROR });
     }
-  }, [completedMemberIds, currentMemberId, dayKey, hasActiveMemberPending, persistRandomizerData, selectedTeamId]);
+  }, [
+    completedMemberIds,
+    currentMemberId,
+    dayKey,
+    hasActiveMemberPending,
+    persistRandomizerData,
+    selectedTeamId,
+    excludedMemberIds
+  ]);
 
   const handleSelectPrevious = React.useCallback(async () => {
     if (!selectedTeamId || selectionHistory.length === 0) return;
@@ -508,25 +499,33 @@ export function usePanelState(): PanelStateReturn {
     }
   }, [completedMemberIds, dayKey, persistRandomizerData, selectedTeamId, selectionHistory]);
 
-  const handleTeamSelection = React.useCallback(
-    (_: React.SyntheticEvent<HTMLElement>, option: IListBoxItem<WebApiTeam> | undefined) => {
-      if (!option || option.id === selectedTeamId) return;
-      setSelectedTeamId(option.id);
-      setStatus(undefined);
-    },
-    [selectedTeamId]
-  );
-
   const dismissStatus = React.useCallback(() => setStatus(undefined), []);
 
-  const toggleMemberInclusion = React.useCallback((memberId: string) => {
-    setExcludedMemberIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(memberId)) next.delete(memberId);
-      else next.add(memberId);
-      return next;
-    });
-  }, []);
+  const toggleMemberInclusion = React.useCallback(
+    async (memberId: string) => {
+      if (!selectedTeamId) return;
+      const previousExcluded = new Set(excludedMemberIds);
+      const nextExcluded = new Set(excludedMemberIds);
+      if (nextExcluded.has(memberId)) nextExcluded.delete(memberId);
+      else nextExcluded.add(memberId);
+      setExcludedMemberIds(nextExcluded);
+
+      try {
+        await persistRandomizerData((previous) => {
+          const dayData: RandomizerDayData = { ...(previous[dayKey] ?? {}) };
+          const nextDayData: RandomizerDayData = {
+            ...dayData,
+            excludedMembers: { ...(dayData.excludedMembers ?? {}), [selectedTeamId]: Array.from(nextExcluded) }
+          };
+          return { ...previous, [dayKey]: nextDayData };
+        });
+      } catch (error) {
+        setExcludedMemberIds(previousExcluded);
+        setStatus({ type: 'error', message: 'Failed to save member exclusion.' });
+      }
+    },
+    [dayKey, excludedMemberIds, persistRandomizerData, selectedTeamId]
+  );
 
   const totalMembers = members.length - excludedMemberIds.size;
   const completedCount = Array.from(completedMemberIds).filter((id) => !excludedMemberIds.has(id)).length;
@@ -548,8 +547,6 @@ export function usePanelState(): PanelStateReturn {
     (completedMemberIds.size === 0 && !hasActiveMemberPending && excludedMemberIds.size === 0);
 
   return {
-    dropdownSelection,
-    teams,
     selectedTeamId,
     members,
     completedMemberIds,
@@ -580,7 +577,6 @@ export function usePanelState(): PanelStateReturn {
       randomize: () => void handleRandomize(),
       resetSelections: () => void handleResetSelections(),
       selectPrevious: () => void handleSelectPrevious(),
-      selectTeam: handleTeamSelection,
       dismissStatus,
       toggleMemberInclusion
     }

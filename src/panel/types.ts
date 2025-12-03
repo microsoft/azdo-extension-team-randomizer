@@ -6,6 +6,7 @@ import { StoredMember, StoredMembersByTeam } from '../settings/types';
 export type RandomizerDayData = {
   teamMembers?: Record<string, string[]>; // completed member ids for a team today
   activeMembers?: Record<string, string>; // currently active (in-progress) member per team
+  excludedMembers?: Record<string, string[]>; // excluded member ids for a team today
   question?: unknown; // raw stored question-of-the-day object/value
   hotd?: unknown; // raw stored holiday-of-the-day value
   [key: string]: unknown;
