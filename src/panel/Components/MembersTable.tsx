@@ -18,7 +18,29 @@ export interface MembersTableProps {
   onToggleInclusion: (memberId: string) => void;
 }
 
-export const MembersTable: React.FC<MembersTableProps> = ({
+/** Compare two Sets by size and contents. */
+function setsAreEqual(a: Set<string>, b: Set<string>): boolean {
+  if (a === b) return true;
+  if (a.size !== b.size) return false;
+  for (const item of a) {
+    if (!b.has(item)) return false;
+  }
+  return true;
+}
+
+/** Custom comparison for MembersTable props to handle Set comparisons. */
+function propsAreEqual(prev: MembersTableProps, next: MembersTableProps): boolean {
+  return (
+    prev.members === next.members &&
+    prev.currentMemberId === next.currentMemberId &&
+    prev.isTeamLoading === next.isTeamLoading &&
+    prev.onToggleInclusion === next.onToggleInclusion &&
+    setsAreEqual(prev.completedMemberIds, next.completedMemberIds) &&
+    setsAreEqual(prev.excludedMemberIds, next.excludedMemberIds)
+  );
+}
+
+const MembersTableInner: React.FC<MembersTableProps> = ({
   members,
   currentMemberId,
   completedMemberIds,
@@ -82,10 +104,10 @@ export const MembersTable: React.FC<MembersTableProps> = ({
           const statusProps = isExcluded
             ? Statuses.Skipped
             : isCurrent
-              ? Statuses.Running
-              : isCompleted
-                ? Statuses.Success
-                : Statuses.Queued;
+            ? Statuses.Running
+            : isCompleted
+            ? Statuses.Success
+            : Statuses.Queued;
           const className = isExcluded ? 'member-excluded' : undefined;
           return (
             <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
@@ -136,3 +158,5 @@ export const MembersTable: React.FC<MembersTableProps> = ({
     />
   );
 };
+
+export const MembersTable = React.memo(MembersTableInner, propsAreEqual);

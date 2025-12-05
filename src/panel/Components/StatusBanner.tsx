@@ -7,7 +7,16 @@ export interface StatusBannerProps {
   onDismiss: () => void;
 }
 
-export const StatusBanner: React.FC<StatusBannerProps> = ({ status, onDismiss }) => {
+/** Custom comparison: compare status by type and message. */
+function propsAreEqual(prev: StatusBannerProps, next: StatusBannerProps): boolean {
+  return (
+    prev.onDismiss === next.onDismiss &&
+    prev.status?.type === next.status?.type &&
+    prev.status?.message === next.status?.message
+  );
+}
+
+const StatusBannerInner: React.FC<StatusBannerProps> = ({ status, onDismiss }) => {
   if (!status) return null;
   const severity = status.type === 'error' ? MessageCardSeverity.Error : MessageCardSeverity.Info;
   return (
@@ -16,3 +25,5 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({ status, onDismiss })
     </MessageCard>
   );
 };
+
+export const StatusBanner = React.memo(StatusBannerInner, propsAreEqual);

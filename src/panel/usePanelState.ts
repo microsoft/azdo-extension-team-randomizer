@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as API from 'azure-devops-extension-api';
-import { CoreRestClient } from 'azure-devops-extension-api/Core';
 import { logger } from '../shared/logger';
 import { initExtension, getSdk } from '../shared/sdk';
 import { getAvailableMembers, saveAvailableMembers } from '../dataService';
@@ -40,7 +39,6 @@ import {
 } from './types';
 
 const log = logger.createChild('PanelState');
-const coreClient = API.getClient(CoreRestClient);
 
 /** What kind of daily content to refresh. */
 type RefreshKind = 'question' | 'holiday';
@@ -88,6 +86,9 @@ export function usePanelState(): PanelStateReturn {
   const selectedTeamRef = React.useRef<string | undefined>(undefined);
   const questionsCacheRef = React.useRef<QuestionOfDay[] | null>(null);
   const holidayDatasetRef = React.useRef<HolidayDatasetEntry[] | null>(null);
+  const isQuestionLoadingRef = React.useRef(false);
+  const isHolidayLoadingRef = React.useRef(false);
+  const isSavingRef = React.useRef(false);
 
   const [isInitializing, setIsInitializing] = React.useState(true);
   const [isTeamLoading, setIsTeamLoading] = React.useState(false);
@@ -168,7 +169,7 @@ export function usePanelState(): PanelStateReturn {
 
   const fetchQuestions = React.useCallback(async (): Promise<QuestionOfDay[]> => {
     if (questionsCacheRef.current) return questionsCacheRef.current;
-    const response = await fetch('../qotd.json', { cache: 'no-store' });
+    const response = await fetch('../qotd.json');
     if (!response.ok) throw new Error(`Failed to load questions. (${response.status})`);
     const payload = (await response.json()) as unknown;
     const questions = Array.isArray(payload)
@@ -181,7 +182,7 @@ export function usePanelState(): PanelStateReturn {
 
   const fetchHolidayDataset = React.useCallback(async (): Promise<HolidayDatasetEntry[]> => {
     if (holidayDatasetRef.current) return holidayDatasetRef.current;
-    const response = await fetch('../hotd.json', { cache: 'no-store' });
+    const response = await fetch('../hotd.json');
     if (!response.ok) throw new Error(`Failed to load holiday data. (${response.status})`);
     const payload = (await response.json()) as unknown;
     const entries = Array.isArray(payload)
@@ -198,31 +199,38 @@ export function usePanelState(): PanelStateReturn {
     return entries;
   }, []);
 
-  const persistRandomizerData = React.useCallback(async (applyUpdate: (previous: RandomizerData) => RandomizerData) => {
-    setIsSaving(true);
-    try {
-      const currentSettings = settingsRef.current ?? (await getAvailableMembers<RandomizerSettings>());
-      if (!mountedRef.current) return currentSettings._randomizerData ?? {};
-      const updatedRandomizer = applyUpdate(currentSettings._randomizerData ?? {});
-      const nextSettings: RandomizerSettings = { ...currentSettings, _randomizerData: updatedRandomizer };
-      settingsRef.current = nextSettings;
-      const success = await saveAvailableMembers(nextSettings);
-      if (!success) throw new Error('Failed to persist randomizer data.');
-      return updatedRandomizer;
-    } catch (error) {
-      log.error('Failed to persist randomizer data', error);
-      throw error;
-    } finally {
-      if (mountedRef.current) setIsSaving(false);
-    }
-  }, []);
+  const persistRandomizerData = React.useCallback(
+    async (applyUpdate: (previous: RandomizerData) => RandomizerData, options?: { silent?: boolean }) => {
+      const silent = options?.silent ?? false;
+      isSavingRef.current = true;
+      if (!silent) setIsSaving(true);
+      try {
+        const currentSettings = settingsRef.current ?? (await getAvailableMembers<RandomizerSettings>());
+        if (!mountedRef.current) return currentSettings._randomizerData ?? {};
+        const updatedRandomizer = applyUpdate(currentSettings._randomizerData ?? {});
+        const nextSettings: RandomizerSettings = { ...currentSettings, _randomizerData: updatedRandomizer };
+        settingsRef.current = nextSettings;
+        const success = await saveAvailableMembers(nextSettings);
+        if (!success) throw new Error('Failed to persist randomizer data.');
+        return updatedRandomizer;
+      } catch (error) {
+        log.error('Failed to persist randomizer data', error);
+        throw error;
+      } finally {
+        isSavingRef.current = false;
+        if (!silent && mountedRef.current) setIsSaving(false);
+      }
+    },
+    []
+  );
 
   const refreshDailyContent = React.useCallback(
     async (kind: RefreshKind) => {
       const isQuestion = kind === 'question';
-      const loading = isQuestion ? isQuestionLoading : isHolidayLoading;
+      const loadingRef = isQuestion ? isQuestionLoadingRef : isHolidayLoadingRef;
       const setLoading = isQuestion ? setIsQuestionLoading : setIsHolidayLoading;
-      if (loading) return;
+      if (loadingRef.current) return;
+      loadingRef.current = true;
       setLoading(true);
       try {
         const currentSettings = settingsRef.current ?? (await getAvailableMembers<RandomizerSettings>());
@@ -235,11 +243,14 @@ export function usePanelState(): PanelStateReturn {
           const currentQuestion = normalizeQuestionOfDay(currentDayData?.question);
           const history = collectAskedQuestionHistory(currentData);
           const nextQuestion = selectNextQuestion(questions, history, currentQuestion);
-          await persistRandomizerData((previous) => {
-            const nextDayData: RandomizerDayData = { ...(previous[dayKey] ?? {}) };
-            nextDayData.question = nextQuestion;
-            return { ...previous, [dayKey]: nextDayData };
-          });
+          await persistRandomizerData(
+            (previous) => {
+              const nextDayData: RandomizerDayData = { ...(previous[dayKey] ?? {}) };
+              nextDayData.question = nextQuestion;
+              return { ...previous, [dayKey]: nextDayData };
+            },
+            { silent: true }
+          );
           if (mountedRef.current) setQuestionOfDay(nextQuestion);
           return;
         }
@@ -254,11 +265,14 @@ export function usePanelState(): PanelStateReturn {
         const currentDayData = currentData[dayKey] as { hotd?: unknown } | undefined;
         const currentHoliday = normalizeHolidayOfDay(currentDayData?.hotd);
         const nextHoliday = selectNextHoliday(options, currentHoliday);
-        await persistRandomizerData((previous) => {
-          const nextDayData: RandomizerDayData = { ...(previous[dayKey] ?? {}) };
-          nextDayData.hotd = nextHoliday;
-          return { ...previous, [dayKey]: nextDayData };
-        });
+        await persistRandomizerData(
+          (previous) => {
+            const nextDayData: RandomizerDayData = { ...(previous[dayKey] ?? {}) };
+            nextDayData.hotd = nextHoliday;
+            return { ...previous, [dayKey]: nextDayData };
+          },
+          { silent: true }
+        );
         if (mountedRef.current) setHolidayOfDay(nextHoliday);
       } catch (error) {
         log.error(`Failed to refresh ${kind === 'question' ? 'Question' : 'Holiday'} of the Day`, error);
@@ -269,10 +283,11 @@ export function usePanelState(): PanelStateReturn {
           });
         }
       } finally {
+        loadingRef.current = false;
         if (mountedRef.current) setLoading(false);
       }
     },
-    [dayKey, fetchHolidayDataset, fetchQuestions, isHolidayLoading, isQuestionLoading, persistRandomizerData]
+    [dayKey, fetchHolidayDataset, fetchQuestions, persistRandomizerData]
   );
 
   const loadTeamData = React.useCallback(
@@ -337,7 +352,7 @@ export function usePanelState(): PanelStateReturn {
         if (mountedRef.current && selectedTeamRef.current === teamId) setIsTeamLoading(false);
       }
     },
-    [dayKey, projectId, refreshDailyContent]
+    [dayKey, projectId]
   );
 
   React.useEffect(() => {
@@ -546,6 +561,26 @@ export function usePanelState(): PanelStateReturn {
     isSaving ||
     (completedMemberIds.size === 0 && !hasActiveMemberPending && excludedMemberIds.size === 0);
 
+  const actions = React.useMemo(
+    () => ({
+      refreshQuestionOfDay: () => void refreshDailyContent('question'),
+      refreshHolidayOfDay: () => void refreshDailyContent('holiday'),
+      randomize: () => void handleRandomize(),
+      resetSelections: () => void handleResetSelections(),
+      selectPrevious: () => void handleSelectPrevious(),
+      dismissStatus,
+      toggleMemberInclusion
+    }),
+    [
+      refreshDailyContent,
+      handleRandomize,
+      handleResetSelections,
+      handleSelectPrevious,
+      dismissStatus,
+      toggleMemberInclusion
+    ]
+  );
+
   return {
     selectedTeamId,
     members,
@@ -571,14 +606,6 @@ export function usePanelState(): PanelStateReturn {
     completedCount,
     remainingCount,
     excludedMemberIds,
-    actions: {
-      refreshQuestionOfDay: () => void refreshDailyContent('question'),
-      refreshHolidayOfDay: () => void refreshDailyContent('holiday'),
-      randomize: () => void handleRandomize(),
-      resetSelections: () => void handleResetSelections(),
-      selectPrevious: () => void handleSelectPrevious(),
-      dismissStatus,
-      toggleMemberInclusion
-    }
+    actions
   };
 }

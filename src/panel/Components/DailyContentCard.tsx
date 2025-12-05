@@ -17,50 +17,42 @@ export interface DailyContentCardProps {
 }
 
 /** Generic card for daily rotating content (question, holiday, etc.). */
-export const DailyContentCard: React.FC<DailyContentCardProps> = ({
-  title,
-  value,
-  isLoading,
-  onRefresh,
-  loadingLabel,
-  emptyMessage,
-  testId,
-  refreshLabel,
-  emptyLabel
-}) => {
-  const commandItems = React.useMemo<IHeaderCommandBarItem[]>(
-    () => [
-      {
-        id: `${title.toLowerCase().replace(/\s+/g, '-')}-refresh`,
-        iconProps: { iconName: 'Refresh' },
-        ariaLabel: isLoading ? loadingLabel : (refreshLabel ?? `Refresh ${title}`),
-        disabled: isLoading,
-        onActivate: () => onRefresh()
-      }
-    ],
-    [isLoading, onRefresh, title, loadingLabel, refreshLabel]
-  );
+export const DailyContentCard: React.FC<DailyContentCardProps> = React.memo(
+  ({ title, value, isLoading, onRefresh, loadingLabel, emptyMessage, testId, refreshLabel, emptyLabel }) => {
+    const commandItems = React.useMemo<IHeaderCommandBarItem[]>(
+      () => [
+        {
+          id: `${title.toLowerCase().replace(/\s+/g, '-')}-refresh`,
+          iconProps: { iconName: 'Refresh' },
+          ariaLabel: isLoading ? loadingLabel : refreshLabel ?? `Refresh ${title}`,
+          disabled: isLoading,
+          onActivate: () => onRefresh()
+        }
+      ],
+      [isLoading, onRefresh, title, loadingLabel, refreshLabel]
+    );
 
-  return (
-    <Card
-      className='panel-card'
-      titleProps={{ text: title, size: TitleSize.Medium }}
-      headerCommandBarItems={commandItems}
-      data-testid={testId}
-    >
-      <CardContent className='panel-card-content'>
-        {isLoading ? (
-          <Spinner size={SpinnerSize.medium} label={loadingLabel} />
-        ) : value ? (
-          <p className='panel-card-text' aria-live='polite'>
-            {value}
-          </p>
-        ) : (
-          <div className='panel-card-placeholder' aria-label={emptyLabel}>
-            {emptyMessage}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+    return (
+      <Card
+        className='panel-card'
+        titleProps={{ text: title, size: TitleSize.Medium }}
+        headerCommandBarItems={commandItems}
+        data-testid={testId}
+      >
+        <CardContent className='panel-card-content'>
+          {isLoading ? (
+            <Spinner size={SpinnerSize.medium} label={loadingLabel} />
+          ) : value ? (
+            <p className='panel-card-text' aria-live='polite'>
+              {value}
+            </p>
+          ) : (
+            <div className='panel-card-placeholder' aria-label={emptyLabel}>
+              {emptyMessage}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+);

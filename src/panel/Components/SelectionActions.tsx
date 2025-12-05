@@ -12,35 +12,29 @@ export interface SelectionActionsProps {
   isSelectionCycleComplete: boolean;
 }
 
-export const SelectionActions: React.FC<SelectionActionsProps> = ({
-  onPrevious,
-  onRandomize,
-  onReset,
-  disablePrevious,
-  disableRandomize,
-  disableReset,
-  isSelectionCycleComplete
-}) => (
-  <ButtonGroup className='panel-actions'>
-    <Button
-      iconProps={{ iconName: 'Previous' }}
-      ariaLabel='Select Previous'
-      disabled={disablePrevious}
-      onClick={onPrevious}
-    />
-    <Button
-      primary={!isSelectionCycleComplete}
-      iconProps={{ iconName: 'Next' }}
-      ariaLabel='Select Next'
-      disabled={disableRandomize}
-      onClick={onRandomize}
-    />
-    <Button
-      primary={isSelectionCycleComplete}
-      iconProps={{ iconName: 'Refresh' }}
-      ariaLabel='Start Over'
-      disabled={disableReset}
-      onClick={onReset}
-    />
-  </ButtonGroup>
+export const SelectionActions: React.FC<SelectionActionsProps> = React.memo(
+  ({ onPrevious, onRandomize, onReset, disablePrevious, disableRandomize, disableReset, isSelectionCycleComplete }) => (
+    <ButtonGroup className='panel-actions'>
+      <Button
+        iconProps={{ iconName: 'Previous' }}
+        ariaLabel='Select Previous'
+        disabled={disablePrevious}
+        onClick={onPrevious}
+      />
+      <Button
+        primary={!isSelectionCycleComplete}
+        iconProps={{ iconName: 'Next' }}
+        ariaLabel='Select Next'
+        disabled={disableRandomize}
+        onClick={onRandomize}
+      />
+      <Button
+        primary={isSelectionCycleComplete}
+        iconProps={{ iconName: 'Refresh' }}
+        ariaLabel='Start Over'
+        disabled={disableReset}
+        onClick={onReset}
+      />
+    </ButtonGroup>
+  )
 );

@@ -1,10 +1,5 @@
 import { HolidayDatasetEntry, HolidayValue, QuestionOfDay, RandomizerData } from './types';
 
-export const QUESTIONS_SOURCE_URL =
-  'https://raw.githubusercontent.com/microsoft/azdo-extension-team-randomizer/main/qotd.json';
-export const HOLIDAYS_SOURCE_URL =
-  'https://raw.githubusercontent.com/microsoft/azdo-extension-team-randomizer/main/hotd.json';
-
 export function normalizeQuestionOfDay(value: unknown): QuestionOfDay | undefined {
   if (!value) return undefined;
   if (typeof value === 'string') {

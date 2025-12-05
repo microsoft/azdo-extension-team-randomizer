@@ -11,7 +11,12 @@ export interface CurrentMemberCardProps {
   isLoading: boolean;
 }
 
-export const CurrentMemberCard: React.FC<CurrentMemberCardProps> = ({ member, isLoading }) => {
+/** Custom comparison: compare member by id to avoid re-render on same member object recreation. */
+function propsAreEqual(prev: CurrentMemberCardProps, next: CurrentMemberCardProps): boolean {
+  return prev.isLoading === next.isLoading && prev.member?.id === next.member?.id;
+}
+
+const CurrentMemberCardInner: React.FC<CurrentMemberCardProps> = ({ member, isLoading }) => {
   return (
     <Card className='panel-card' titleProps={{ text: 'Current team member', size: TitleSize.Medium }}>
       <CardContent className='panel-card-content'>
@@ -32,3 +37,5 @@ export const CurrentMemberCard: React.FC<CurrentMemberCardProps> = ({ member, is
     </Card>
   );
 };
+
+export const CurrentMemberCard = React.memo(CurrentMemberCardInner, propsAreEqual);
