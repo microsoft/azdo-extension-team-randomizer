@@ -11,6 +11,7 @@ import {
   DailyContentCard
 } from './Components';
 import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
+import { Button } from 'azure-devops-ui/Button';
 
 const PanelPage: React.FC = () => {
   const state = usePanelState();
@@ -72,6 +73,9 @@ const PanelPage: React.FC = () => {
             onToggleInclusion={state.actions.toggleMemberInclusion}
           />
         </div>
+      </div>
+      <div className='panel-footer'>
+        <Button iconProps={{ iconName: 'Settings' }} ariaLabel='Settings' onClick={state.actions.navigateToSettings} />
       </div>
     </div>
   );

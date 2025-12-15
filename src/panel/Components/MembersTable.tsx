@@ -65,7 +65,7 @@ const MembersTableInner: React.FC<MembersTableProps> = ({
         renderCell: (_rowIndex, columnIndex, tableColumn, item) => {
           const isExcluded = excludedMemberIds.has(item.id);
           return (
-            <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
+            <TableCell key={`col-${columnIndex}`} columnIndex={columnIndex} tableColumn={tableColumn}>
               <Checkbox checked={!isExcluded} onChange={() => onToggleInclusion(item.id)} />
             </TableCell>
           );
@@ -80,7 +80,7 @@ const MembersTableInner: React.FC<MembersTableProps> = ({
           const isExcluded = excludedMemberIds.has(item.id);
           const className = isExcluded ? 'member-name-cell member-excluded' : 'member-name-cell';
           return (
-            <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
+            <TableCell key={`col-${columnIndex}`} columnIndex={columnIndex} tableColumn={tableColumn}>
               <div className={className}>
                 <Persona identity={toPersonaIdentity(item)} size={PersonaSize.size40} />
                 <div className='member-name-text'>
@@ -110,7 +110,7 @@ const MembersTableInner: React.FC<MembersTableProps> = ({
             : Statuses.Queued;
           const className = isExcluded ? 'member-excluded' : undefined;
           return (
-            <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
+            <TableCell key={`col-${columnIndex}`} columnIndex={columnIndex} tableColumn={tableColumn}>
               <div className={className}>
                 <Status {...statusProps} />
               </div>

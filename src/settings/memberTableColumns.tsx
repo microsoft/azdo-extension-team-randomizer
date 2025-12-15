@@ -82,7 +82,12 @@ export function createMemberTableColumns(options: MemberTableColumnsOptions): IT
         );
       },
       renderCell: (_rowIndex, columnIndex, tableColumn, tableItem) => (
-        <TableCell columnIndex={columnIndex} tableColumn={tableColumn} className='member-checkbox-cell'>
+        <TableCell
+          key={`col-${columnIndex}`}
+          columnIndex={columnIndex}
+          tableColumn={tableColumn}
+          className='member-checkbox-cell'
+        >
           <div
             className='member-checkbox-wrapper'
             onClick={(event) => event.stopPropagation()}
@@ -112,7 +117,7 @@ export function createMemberTableColumns(options: MemberTableColumnsOptions): IT
         sortOrder: memberSorting.columnId === 'member' ? memberSorting.sortOrder : undefined
       },
       renderCell: (_rowIndex, columnIndex, tableColumn, tableItem) => (
-        <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
+        <TableCell key={`col-${columnIndex}`} columnIndex={columnIndex} tableColumn={tableColumn}>
           <div className='member-name-cell'>
             <Persona identity={toPersonaIdentity(tableItem)} size={PersonaSize.size40} />
             <div className='member-name-text'>
@@ -134,7 +139,7 @@ export function createMemberTableColumns(options: MemberTableColumnsOptions): IT
         sortOrder: memberSorting.columnId === 'source' ? memberSorting.sortOrder : undefined
       },
       renderCell: (_rowIndex, columnIndex, tableColumn, tableItem) => (
-        <TableCell columnIndex={columnIndex} tableColumn={tableColumn}>
+        <TableCell key={`col-${columnIndex}`} columnIndex={columnIndex} tableColumn={tableColumn}>
           <span className={'member-type-label member-type-label-' + tableItem.sourceType}>
             {MemberSource[tableItem.sourceType]}
           </span>
@@ -149,7 +154,12 @@ export function createMemberTableColumns(options: MemberTableColumnsOptions): IT
       justification: ColumnJustification.Right,
       readonly: true,
       renderCell: (_rowIndex, columnIndex, tableColumn, tableItem) => (
-        <TableCell columnIndex={columnIndex} tableColumn={tableColumn} className='member-actions-cell'>
+        <TableCell
+          key={`col-${columnIndex}`}
+          columnIndex={columnIndex}
+          tableColumn={tableColumn}
+          className='member-actions-cell'
+        >
           <div className='member-actions-content'>
             {tableItem.sourceType !== 'team' ? (
               <Button
