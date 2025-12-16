@@ -14,20 +14,22 @@ export interface SelectionActionsProps {
 
 export const SelectionActions: React.FC<SelectionActionsProps> = React.memo(
   ({ onPrevious, onRandomize, onReset, disablePrevious, disableRandomize, disableReset, isSelectionCycleComplete }) => (
-    <ButtonGroup className='panel-actions'>
-      <Button
-        iconProps={{ iconName: 'Previous' }}
-        ariaLabel='Select Previous'
-        disabled={disablePrevious}
-        onClick={onPrevious}
-      />
-      <Button
-        primary={!isSelectionCycleComplete}
-        iconProps={{ iconName: 'Next' }}
-        ariaLabel='Select Next'
-        disabled={disableRandomize}
-        onClick={onRandomize}
-      />
+    <div className='panel-actions'>
+      <ButtonGroup>
+        <Button
+          iconProps={{ iconName: 'Previous' }}
+          ariaLabel='Select Previous'
+          disabled={disablePrevious}
+          onClick={onPrevious}
+        />
+        <Button
+          primary={!isSelectionCycleComplete}
+          iconProps={{ iconName: 'Next' }}
+          ariaLabel='Select Next'
+          disabled={disableRandomize}
+          onClick={onRandomize}
+        />
+      </ButtonGroup>
       <Button
         primary={isSelectionCycleComplete}
         iconProps={{ iconName: 'Refresh' }}
@@ -35,6 +37,6 @@ export const SelectionActions: React.FC<SelectionActionsProps> = React.memo(
         disabled={disableReset}
         onClick={onReset}
       />
-    </ButtonGroup>
+    </div>
   )
 );

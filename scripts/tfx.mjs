@@ -56,7 +56,7 @@ const args = [
   'extension',
   action === 'create' ? 'create' : 'publish',
   '--manifest-globs',
-  'azure-devops-extension.json src/**/*.json',
+  'azure-devops-extension.json src/button/button.json src/panel/panel.json src/settings/settings.json',
   '--overrides-file',
   overrideFile,
   '--rev-version',

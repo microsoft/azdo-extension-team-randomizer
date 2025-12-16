@@ -159,6 +159,20 @@ export function useSettingsState(): UseSettingsStateResult {
         setBaselineSelections(baselineSelectionSnapshot);
         setCustomMembers(storedCustomMembers);
         setPersistedCustomMembers(persistedCustomSnapshot);
+
+        const navService = await getSdk().getService<API.IHostNavigationService>(
+          API.CommonServiceIds.HostNavigationService
+        );
+        const queryParams = await navService.getQueryParams();
+        const initialTeamId = queryParams['teamId'];
+        if (initialTeamId) {
+          const teamIndex = teamResults.findIndex((t) => t.id === initialTeamId);
+          if (teamIndex >= 0) {
+            setSelectedTeamId(initialTeamId);
+            dropdownSelection.select(teamIndex);
+          }
+        }
+
         getSdk().notifyLoadSucceeded();
         getSdk().resize();
       } catch (error) {
@@ -189,35 +203,33 @@ export function useSettingsState(): UseSettingsStateResult {
   // NOTE: Removed unused teamItems provider (was dead code after component refactor).
 
   // Team selection handler
-  const handleTeamSelection = React.useCallback(
-    async (_event: React.SyntheticEvent<HTMLElement>, option: IListBoxItem<WebApiTeam> | undefined) => {
-      if (!option || !projectInfo) return;
+  const loadTeamMembers = React.useCallback(
+    async (teamId: string) => {
+      if (!projectInfo) return;
       setStatus(undefined);
-      setSelectedTeamId(option.id);
-      setSelectedIdentity(undefined);
       setIsTeamLoading(true);
       setMemberSorting({ columnId: 'member', sortOrder: SortOrder.ascending });
       setMembers([]);
       setSelectedMemberIds(new Set());
       try {
-        const baseMembers = await fetchTeamMembers(projectInfo.id, option.id);
-        const customEntries = customMembers[option.id] ?? [];
+        const baseMembers = await fetchTeamMembers(projectInfo.id, teamId);
+        const customEntries = customMembers[teamId] ?? [];
         const combined = mergeMemberViews(
           baseMembers.map(mapTeamMemberToView),
           customEntries.map(mapStoredMemberToView)
         );
         setMembers(combined);
-        const persisted = persistedSelections[option.id];
+        const persisted = persistedSelections[teamId];
         const idSet = new Set(combined.map((m) => m.id));
         const validSelection = persisted ? persisted.filter((id) => idSet.has(id)) : combined.map((m) => m.id);
         const normalizedSelection = Array.from(new Set(validSelection)).sort((a, b) => a.localeCompare(b));
         setSelectedMemberIds(new Set(normalizedSelection));
-        setBaselineSelections((prev) => ({ ...prev, [option.id]: [...normalizedSelection] }));
+        setBaselineSelections((prev) => ({ ...prev, [teamId]: [...normalizedSelection] }));
       } catch (error) {
         log.error('Failed to load team members', error);
         setMembers([]);
         setSelectedMemberIds(new Set());
-        setBaselineSelections((prev) => ({ ...prev, [option.id]: [] }));
+        setBaselineSelections((prev) => ({ ...prev, [teamId]: [] }));
         setStatus({ type: 'error', message: MESSAGE_TEAM_LOAD_ERROR });
       } finally {
         setIsTeamLoading(false);
@@ -225,6 +237,26 @@ export function useSettingsState(): UseSettingsStateResult {
       }
     },
     [projectInfo, customMembers, persistedSelections]
+  );
+
+  React.useEffect(() => {
+    if (selectedTeamId && projectInfo && !isInitializing) {
+      void loadTeamMembers(selectedTeamId);
+      void (async () => {
+        const navService = await getSdk().getService<API.IHostNavigationService>(
+          API.CommonServiceIds.HostNavigationService
+        );
+        navService.setQueryParams({ teamId: selectedTeamId });
+      })();
+    }
+  }, [selectedTeamId, projectInfo, isInitializing, loadTeamMembers]);
+
+  const handleTeamSelection = React.useCallback(
+    async (_event: React.SyntheticEvent<HTMLElement>, option: IListBoxItem<WebApiTeam> | undefined) => {
+      if (!option) return;
+      setSelectedTeamId(option.id);
+    },
+    []
   );
 
   // Member toggle

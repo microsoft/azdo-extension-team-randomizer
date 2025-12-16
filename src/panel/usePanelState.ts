@@ -77,6 +77,7 @@ export type PanelStateReturn = {
     selectPrevious: () => void;
     dismissStatus: () => void;
     toggleMemberInclusion: (memberId: string) => void;
+    navigateToSettings: () => Promise<void>;
   };
 };
 
@@ -581,6 +582,61 @@ export function usePanelState(): PanelStateReturn {
     ]
   );
 
+  const navigateToSettings = React.useCallback(async () => {
+    try {
+      const sdk = getSdk();
+      const navService = await sdk.getService<API.IHostNavigationService>(API.CommonServiceIds.HostNavigationService);
+      const locationService = await sdk.getService<API.ILocationService>(API.CommonServiceIds.LocationService);
+      const projectService = await sdk.getService<API.IProjectPageService>(API.CommonServiceIds.ProjectPageService);
+
+      const extensionContext = sdk.getExtensionContext();
+      const hubId = `${extensionContext.publisherId}.${extensionContext.extensionId}.settings`;
+      const project = await projectService.getProject();
+
+      log.info(`Navigating to settings hub: ${hubId}, Project: ${project?.name}`);
+
+      let targetUrl: string | undefined;
+      try {
+        targetUrl = await locationService.routeUrl(hubId, {
+          project: project?.name || '',
+          teamId: selectedTeamRef.current || ''
+        });
+      } catch (e) {
+        log.info(`Route not found for ${hubId}, trying fallback.`);
+      }
+
+      log.info(`Resolved URL: ${targetUrl}`);
+      if (!targetUrl && project) {
+        log.info('Falling back to constructing settings URL manually');
+        try {
+          // Fallback: Try to get the project settings home URL and append the hub ID
+          const settingsUrl = await locationService.routeUrl('ms.vss-admin-web.project-admin-hub-route', {
+            project: project.name
+          });
+
+          if (settingsUrl) {
+            // settingsUrl is likely /org/project/_settings
+            // We want /org/project/_settings/publisher.extension.settings
+            targetUrl = `${settingsUrl}/${hubId}`;
+            if (selectedTeamRef.current) {
+              targetUrl += `?teamId=${selectedTeamRef.current}`;
+            }
+            log.info(`Constructed fallback URL: ${targetUrl}`);
+          }
+        } catch (e) {
+          log.error('Fallback route construction failed', e);
+        }
+      }
+      if (targetUrl) {
+        navService.navigate(targetUrl);
+      } else {
+        log.error('Could not resolve URL for settings hub');
+      }
+    } catch (e) {
+      log.error('Error navigating to settings', e);
+    }
+  }, []);
+
   return {
     selectedTeamId,
     members,
@@ -606,6 +662,9 @@ export function usePanelState(): PanelStateReturn {
     completedCount,
     remainingCount,
     excludedMemberIds,
-    actions
+    actions: {
+      ...actions,
+      navigateToSettings
+    }
   };
 }
