@@ -15,7 +15,7 @@
     "react-dom": "^16.14.0"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.51.2",
+    "@dotenvx/dotenvx": "^1.51.4",
     "@types/react": "^16.14.67",
     "@types/react-dom": "^16.9.25",
     "copy-webpack-plugin": "^13.0.1",
