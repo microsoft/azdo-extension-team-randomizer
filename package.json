@@ -23,7 +23,7 @@
     "es6-promise": "^4.2.8",
     "rimraf": "^6.1.2",
     "sass": "^1.97.3",
-    "sass-loader": "^16.0.6",
+    "sass-loader": "^16.0.7",
     "style-loader": "^4.0.0",
     "syncpack": "^13.0.4",
     "tfx-cli": "^0.23.1",
