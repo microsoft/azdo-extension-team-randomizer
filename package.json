@@ -8,14 +8,14 @@
     "Engin Polat"
   ],
   "dependencies": {
-    "azure-devops-extension-api": "^4.268.0",
+    "azure-devops-extension-api": "^4.269.1",
     "azure-devops-extension-sdk": "^4.2.0",
-    "azure-devops-ui": "^2.269.0",
+    "azure-devops-ui": "^2.270.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.52.0",
+    "@dotenvx/dotenvx": "^1.54.1",
     "@types/react": "^16.14.67",
     "@types/react-dom": "^16.9.25",
     "copy-webpack-plugin": "^14.0.0",
@@ -25,11 +25,11 @@
     "sass": "^1.97.3",
     "sass-loader": "^16.0.7",
     "style-loader": "^4.0.0",
-    "syncpack": "^14.0.0",
+    "syncpack": "^14.2.0",
     "tfx-cli": "^0.23.1",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
-    "webpack": "^5.105.3",
+    "webpack": "^5.105.4",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.3"
   },
