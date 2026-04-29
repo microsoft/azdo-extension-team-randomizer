@@ -10,12 +10,12 @@
   "dependencies": {
     "azure-devops-extension-api": "^4.270.0",
     "azure-devops-extension-sdk": "^4.2.0",
-    "azure-devops-ui": "^2.271.0",
+    "azure-devops-ui": "^2.272.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.60.2",
+    "@dotenvx/dotenvx": "^1.64.0",
     "@types/react": "^16.14.67",
     "@types/react-dom": "^16.9.25",
     "copy-webpack-plugin": "^14.0.0",
@@ -25,11 +25,11 @@
     "sass": "^1.99.0",
     "sass-loader": "^16.0.7",
     "style-loader": "^4.0.0",
-    "syncpack": "^14.3.0",
+    "syncpack": "^14.3.1",
     "tfx-cli": "^0.23.1",
     "ts-loader": "^9.5.7",
-    "typescript": "^6.0.2",
-    "webpack": "^5.105.4",
+    "typescript": "^6.0.3",
+    "webpack": "^5.106.2",
     "webpack-cli": "^7.0.2",
     "webpack-dev-server": "^5.2.3"
   },
