@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.ts"
+applyTo: '**/*.ts'
 description: Guidelines for TypeScript Development targeting TypeScript 5.x and ES2022 output
 ---
 
@@ -36,7 +36,7 @@ description: Guidelines for TypeScript Development targeting TypeScript 5.x and 
 
 ## Formatting & Style
 
-- Run the repository's lint/format scripts (e.g., `npm run lint`) before submitting.
+- Run the repository's lint/format scripts (e.g., `pnpm run lint`) before submitting.
 - Match the project's indentation, quote style, and trailing comma rules.
 - Keep functions focused; extract helpers when logic branches grow.
 - Favor immutable data and pure functions when practical.

@@ -9,7 +9,8 @@ development environment, coding conventions, build & packaging flow, and how to 
 
 ### Prerequisites
 
-- Node.js 22. Older versions may work but are not tested.
+- Node.js 24, as specified in `.node-version`. Older versions may work but are not tested.
+- Corepack, included with Node.js and enabled with `corepack enable`.
 - An Azure DevOps Publisher ID (Marketplace publisher). If you don't have one yet, create a publisher at: <https://marketplace.visualstudio.com/manage>
 - Personal Access Token (PAT) or Alternate Token with Marketplace publish rights. Exposed here as `AZURE_DEVOPS_TOKEN`.
 - Git installed.
@@ -21,7 +22,8 @@ Fork the repo <https://github.com/microsoft/azdo-extension-team-randomizer>
 ```shell
 git clone https://github.com/<Your-GitHub-Username>/azdo-extension-team-randomizer.git
 cd azdo-extension-team-randomizer
-npm install
+corepack enable
+pnpm install --frozen-lockfile
 ```
 
 ### Folder Overview (simplified)
@@ -73,7 +75,7 @@ AZURE_DEVOPS_TOKEN=your-marketplace-pat
 ### Format & Lint
 
 ```shell
-npm run format
+pnpm run format
 ```
 
 This invokes syncpack to normalize dependency spec formatting and runs Prettier over supported source files.
@@ -81,21 +83,22 @@ This invokes syncpack to normalize dependency spec formatting and runs Prettier 
 ### Clean
 
 ```shell
-npm run clean          # Removes dist/ and any VSIX artifacts
-npm run clean:modules  # Deletes node_modules then reinstalls
+pnpm run clean          # Removes dist/ and any VSIX artifacts
+pnpm run clean:modules  # Deletes node_modules
+pnpm install            # Reinstalls dependencies
 ```
 
 ### Compile (Without Packaging)
 
 ```shell
-npm run compile:dev    # Development mode build (cleans first)
-npm run compile:prod   # Production mode build (cleans first)
+pnpm run compile:dev    # Development mode build (cleans first)
+pnpm run compile:prod   # Production mode build (cleans first)
 ```
 
 ### Local Dev Server
 
 ```shell
-npm run start:dev      # Webpack dev server on local baseUri defined in dev manifest
+pnpm run start:dev      # Webpack dev server on local baseUri defined in dev manifest
 ```
 
 The dev server uses the `azure-devops-extension.dev.json` `baseUri` to serve content. You can load the extension in an Azure DevOps organization by uploading the generated VSIX or using the local host panel if configured.
@@ -105,7 +108,7 @@ The dev server uses the `azure-devops-extension.dev.json` `baseUri` to serve con
 ### Create VSIX (Dev)
 
 ```shell
-npm run build:dev      # Cleans, compiles, runs tfx create with dev overrides
+pnpm run build:dev      # Cleans, compiles, runs tfx create with dev overrides
 ```
 
 Result: VSIX is placed under `out/` (configured by tfx script). Use this for local installation/testing.
@@ -113,7 +116,7 @@ Result: VSIX is placed under `out/` (configured by tfx script). Use this for loc
 ### Create VSIX (Prod)
 
 ```shell
-npm run build:prod
+pnpm run build:prod
 ```
 
 Result: Production VSIX (with prod version overrides) in `out/`.
@@ -121,7 +124,7 @@ Result: Production VSIX (with prod version overrides) in `out/`.
 ### Publish (Dev Channel)
 
 ```shell
-npm run publish:dev    # Requires AZURE_DEVOPS_PUBLISHER and AZURE_DEVOPS_TOKEN (token only if manifest publisher omitted)
+pnpm run publish:dev    # Requires AZURE_DEVOPS_PUBLISHER and AZURE_DEVOPS_TOKEN (token only if manifest publisher omitted)
 ```
 
 This uses `tfx extension publish` with the dev override manifest. Typically keep dev unlisted.
@@ -129,7 +132,7 @@ This uses `tfx extension publish` with the dev override manifest. Typically keep
 ### Publish (Prod)
 
 ```shell
-npm run publish:prod   # Requires AZURE_DEVOPS_TOKEN and publisher
+pnpm run publish:prod  # Requires AZURE_DEVOPS_TOKEN and publisher
 ```
 
 Publishes the production variant. Ensure version bump before publishing (the script adds `--rev-version`).
@@ -140,7 +143,7 @@ Publishes the production variant. Ensure version bump before publishing (the scr
 
 The base manifest (`azure-devops-extension.json`) carries a placeholder development version. The `tfx` wrapper adds `--rev-version` automatically, incrementing the patch revision. For controlled versioning:
 
-1. Manually set version in `azure-devops-extension.prod.json` before running `npm run publish:prod`.
+1. Manually set version in `azure-devops-extension.prod.json` before running `pnpm run publish:prod`.
 1. Commit the manifest change in the PR implementing a release.
 
 ## Branching & Pull Requests
@@ -152,8 +155,8 @@ The base manifest (`azure-devops-extension.json`) carries a placeholder developm
 
 ### PR Checklist
 
-- [ ] Build succeeds: `npm run compile:dev`
-- [ ] Formatting applied: `npm run format`
+- [ ] Build succeeds: `pnpm run compile:dev`
+- [ ] Formatting applied: `pnpm run format`
 - [ ] No stray console errors beyond intentional logging
 - [ ] Manifest changes reviewed (publisher, version, visibility)
 - [ ] Sensitive values not committed (no tokens in env files)
@@ -168,14 +171,14 @@ The base manifest (`azure-devops-extension.json`) carries a placeholder developm
 
 ## Troubleshooting
 
-| Issue                                   | Fix                                                                                           |
-|-----------------------------------------|-----------------------------------------------------------------------------------------------|
-| `Missing AZURE_DEVOPS_PUBLISHER`        | Add to `dev.env` / `prod.env` or fill `publisher` in manifest override.                       |
-| `Missing AZURE_DEVOPS_TOKEN` on publish | Export a PAT: `set AZURE_DEVOPS_TOKEN=...` (Win) / `export AZURE_DEVOPS_TOKEN=...` (Unix).    |
-| `tfx-cli not found`                     | Ensure `npx tfx` works or reinstall dev deps (`npm install`).                                 |
-| VSIX empty / missing assets             | Confirm `dist/` exists and manifests reference `dist` folder in `files` section.              |
+| Issue                                   | Fix                                                                                                |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Missing AZURE_DEVOPS_PUBLISHER`        | Add to `dev.env` / `prod.env` or fill `publisher` in manifest override.                            |
+| `Missing AZURE_DEVOPS_TOKEN` on publish | Export a PAT: `set AZURE_DEVOPS_TOKEN=...` (Win) / `export AZURE_DEVOPS_TOKEN=...` (Unix).         |
+| `tfx-cli not found`                     | Ensure `pnpm exec tfx` works or reinstall dev deps (`pnpm install`).                               |
+| VSIX empty / missing assets             | Confirm `dist/` exists and manifests reference `dist` folder in `files` section.                   |
 | Local UI doesn't load                   | Check `baseUri` (dev manifest or `AZURE_DEVOPS_BASE_URI`) matches dev server port (default 33000). |
-| Wrong host/port in packaged dev build   | Verify override variable (`AZURE_DEVOPS_BASE_URI`) wasn't set unexpectedly in your shell. |
+| Wrong host/port in packaged dev build   | Verify override variable (`AZURE_DEVOPS_BASE_URI`) wasn't set unexpectedly in your shell.          |
 
 ## Security & Token Handling
 

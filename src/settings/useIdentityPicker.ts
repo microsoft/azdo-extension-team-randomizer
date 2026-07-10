@@ -4,7 +4,7 @@ import {
   IIdentity as IPickerIdentity,
   IPersonaConnections
 } from 'azure-devops-ui/IdentityPicker';
-import { PeoplePickerProvider as AzurePeoplePickerProvider } from 'azure-devops-extension-api/Identities/IdentityProvider';
+import { PeoplePickerProvider as AzurePeoplePickerProvider } from 'azure-devops-extension-api/Identities';
 import { logger } from '../shared/logger';
 import {
   createCustomIdentityFromInput,
